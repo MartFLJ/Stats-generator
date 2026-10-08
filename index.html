@@ -4,70 +4,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Stat Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
-  <h1>Stat Generator</h1>
+<div class="app">
 
-  <section class="card full">
-    <div class="bar between">
-      <strong>Mis fichas</strong>
-      <div class="bar">
-        <button id="new" class="alt">+ Nueva</button>
-        <button id="save">Guardar ficha</button>
-        <button id="dl">Descargar PNG</button>
-        <button id="del" class="danger">Borrar</button>
-      </div>
-    </div>
-    <div id="list"></div>
-    <div id="status" role="status" aria-live="polite"></div>
-  </section>
+  <aside class="sidebar">
+    <div class="logo">STAT<span>GEN</span></div>
+    <nav class="nav">
+      <button data-nav="library" class="active">◈ Biblioteca</button>
+      <button data-nav="config">⚙ Configuración</button>
+      <button data-nav="visual">◇ Visualización</button>
+      <button data-nav="ranges">≡ Rangos</button>
+    </nav>
+    <div class="sidebar-bottom">Fase 3</div>
+  </aside>
 
-  <section class="card"><svg id="chart" viewBox="0 0 640 500" role="img" aria-label="Ficha de estadísticas"></svg></section>
+  <main class="main">
+    <header class="topbar">
+      <div class="page-title">Stat Generator</div>
+      <div class="top-actions">
+        <button class="btn" data-act="rand" title="Valores aleatorios">🎲<span class="hide-sm"> Aleatorio</span></button>
+        <button class="btn" data-act="dl" title="Descargar imagen">⬇<span class="hide-sm"> PNG</span></button>
+        <button class="btn" data-act="save">Guardar</button>
+        <button class="btn primary" data-act="new">+<span class="hide-sm"> Nueva</span></button>
+      </div>
+    </header>
 
-  <section class="card">
-    <label class="field">Nombre del personaje<input type="text" id="cname" maxlength="28"></label>
-    <label class="field">Subtítulo (opcional)<input type="text" id="subtitle" maxlength="40" placeholder="Ej: El guardián del norte"></label>
-    <div class="bar spaced">
-      <label>Cantidad de stats: <select id="count"></select></label>
-      <label>Escala 0 a <input type="number" id="max" min="3" max="1000" class="num"></label>
-    </div>
-    <div id="controls"></div>
-    <div class="bar spaced">
-      <input type="color" id="color" value="#e0457b" title="Color">
-      <button id="rand" class="alt">Aleatorio</button>
-      <button id="reset" class="alt">Reiniciar</button>
-      <label><input type="checkbox" id="letters" checked> Etiquetas</label>
-      <label><input type="checkbox" id="showval"> Valor</label>
-    </div>
-  </section>
+    <section class="workspace">
 
-  <section class="card full">
-    <div class="bar between">
-      <strong>Rangos</strong>
-      <div class="bar">
-        <button id="tab-letters" class="tab on">Letras</button>
-        <button id="tab-custom" class="tab">Personalizado</button>
-      </div>
-    </div>
-    <div id="panel-letters">
-      <div class="bar between">
-        <span class="muted">Valor mínimo para cada letra. E empieza en 0.</span>
-        <button id="auto" class="alt">Repartir automático</button>
-      </div>
-      <div id="ranks" class="bar"></div>
-    </div>
-    <div id="panel-custom" hidden>
-      <p class="muted">Cada fila se aplica desde su valor mínimo hasta antes de la siguiente. La primera siempre empieza en 0.</p>
-      <div id="crows"></div>
-      <div class="bar spaced">
-        <button id="cadd" class="alt">+ Agregar fila</button>
-        <button id="cdnd" class="alt">Plantilla D&amp;D</button>
-      </div>
-    </div>
-  </section>
+      <section class="preview-area">
+        <div class="preview-label"><span>Previsualización</span><span id="viewInfo"></span></div>
+        <div class="stat-card"><svg id="chart" viewBox="0 0 640 500" role="img" aria-label="Ficha de estadísticas"></svg></div>
+      </section>
+
+      <aside class="editor">
+
+        <!-- BIBLIOTECA -->
+        <div class="panel active" data-panel="library">
+          <div class="panel-title">Biblioteca</div>
+          <div class="panel-description">Tus fichas guardadas en este navegador.</div>
+          <button class="btn primary full" data-act="new">+ Nueva ficha</button>
+          <div class="library-list" id="libraryList"></div>
+        </div>
+
+        <!-- CONFIGURACIÓN -->
+        <div class="panel" data-panel="config">
+          <div class="panel-title">Configuración</div>
+          <div class="panel-description">Define el contenido de tu ficha.</div>
+
+          <div class="form-group"><label for="cname">Nombre</label><input type="text" id="cname" maxlength="28"></div>
+          <div class="form-group"><label for="subtitle">Subtítulo</label><input type="text" id="subtitle" maxlength="40" placeholder="Opcional"></div>
+
+          <div class="section">
+            <div class="section-title">Estadísticas</div>
+            <div class="stat-editor" id="statEditor"></div>
+            <button class="add-stat" id="addStat">+ Agregar estadística</button>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Mostrar</div>
+            <div class="option"><span>Mostrar nombre</span><button class="switch" id="sw-name" role="switch"><span class="switch-dot"></span></button></div>
+            <div class="option"><span>Mostrar valor</span><button class="switch" id="sw-value" role="switch"><span class="switch-dot"></span></button></div>
+            <div class="option"><span>Mostrar rango</span><button class="switch" id="sw-rank" role="switch"><span class="switch-dot"></span></button></div>
+          </div>
+
+          <div class="section">
+            <div class="row2">
+              <button class="btn" data-act="rand">🎲 Aleatorio</button>
+              <button class="btn" data-act="reset">↺ Reiniciar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISUALIZACIÓN -->
+        <div class="panel" data-panel="visual">
+          <div class="panel-title">Visualización</div>
+          <div class="panel-description">Elige cómo representar las estadísticas.</div>
+          <div class="view-options">
+            <button class="view-option active">Radar</button>
+            <button class="view-option" disabled title="Próximamente">Barras</button>
+            <button class="view-option" disabled title="Próximamente">Tabla</button>
+          </div>
+          <div class="section">
+            <div class="section-title">Escala</div>
+            <div class="form-group"><label for="max">Valor máximo (3 a 1000)</label><input type="number" id="max" min="3" max="1000"></div>
+          </div>
+          <div class="section">
+            <div class="section-title">Apariencia</div>
+            <div class="form-group"><label for="color">Color de acento</label><input type="color" id="color" class="color-input"></div>
+          </div>
+        </div>
+
+        <!-- RANGOS -->
+        <div class="panel" data-panel="ranges">
+          <div class="panel-title">Rangos</div>
+          <div class="panel-description">Define cómo se interpretan los valores.</div>
+          <div class="view-options two">
+            <button class="view-option" id="mode-letters">Letras</button>
+            <button class="view-option" id="mode-custom">Personalizado</button>
+          </div>
+
+          <div id="panel-letters" class="section">
+            <div class="section-title">Valor mínimo de cada letra</div>
+            <div class="range-list" id="letterRows"></div>
+            <button class="add-range" id="auto">Repartir automático</button>
+          </div>
+
+          <div id="panel-custom" class="section" hidden>
+            <div class="section-title">Filas personalizadas</div>
+            <div class="range-row custom head"><span>Desde</span><span>Etiqueta</span><span></span></div>
+            <div class="range-list" id="customRows"></div>
+            <button class="add-range" id="cadd">+ Agregar rango</button>
+            <button class="add-range" id="cdnd">Plantilla D&amp;D</button>
+          </div>
+        </div>
+
+      </aside>
+    </section>
+  </main>
 </div>
+
+<nav class="mobile-nav">
+  <button data-nav="library" class="active">Biblioteca</button>
+  <button data-nav="config">Configuración</button>
+  <button data-nav="visual">Vista</button>
+  <button data-nav="ranges">Rangos</button>
+</nav>
+<div id="toast" role="status" aria-live="polite"></div>
 <script src="app.js"></script>
 </body>
 </html>

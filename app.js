@@ -21,6 +21,7 @@ const newFicha = () => ({
   th: autoTh(10),                      // umbrales del panel de letras
   custom: [{ min: 0, label: "—" }],    // filas del panel personalizado
   showValue: false,
+  showNames: true,
   color: "#e0457b", letters: true      // letters = mostrar etiquetas
 });
 
@@ -48,6 +49,7 @@ function migrate(raw) {
   f.custom = c.slice(0, 50);
   f.rankMode = f.rankMode === "custom" ? "custom" : "letters";
   f.showValue = !!f.showValue;
+  f.showNames = f.showNames !== false;
   f.letters = f.letters !== false;
   f.color = /^#[0-9a-f]{6}$/i.test(f.color) ? f.color : "#e0457b";
   f.name = String(f.name ?? "").slice(0, 28);
@@ -117,9 +119,9 @@ function fichaToSvg(f, P) {
     }
     const [x, y] = pt(i, RC + 22), co = Math.cos(ang(i));
     const an = co > 0.3 ? "start" : co < -0.3 ? "end" : "middle";
-    const dy = f.showValue ? -8 : 0;
-    h += `<text x="${x}" y="${y + dy}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
-    if (f.showValue) h += `<text x="${x}" y="${y + 9}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="13" fill="${P.mute}">${f.stats[i]}</text>`;
+    const both = f.showValue && f.showNames, dy = both ? -8 : 0;
+    if (f.showNames) h += `<text x="${x}" y="${y + dy}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
+    if (f.showValue) h += `<text x="${x}" y="${y + (both ? 9 : 0)}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="${both ? 13 : 15}" font-weight="${both ? 400 : 700}" fill="${both ? P.mute : P.ink}">${f.stats[i]}</text>`;
   }
   return h;
 }
@@ -151,103 +153,115 @@ const store = {
 const $ = id => document.getElementById(id);
 let state = newFicha();
 let fichas = store.read();
+let toastTimer;
 
-const say = m => { $("status").textContent = m; };
+function say(m) {
+  const t = $("toast"); t.textContent = m; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
+}
 function livePal() {
   const s = getComputedStyle(document.documentElement), g = v => s.getPropertyValue(v).trim();
-  return { ink: g("--ink"), mute: g("--mute"), line: g("--line") };
+  return { ink: g("--text"), mute: g("--muted"), line: g("--border") };
 }
-const draw = () => { $("chart").innerHTML = fichaToSvg(state, livePal()); };
+function draw() {
+  $("chart").innerHTML = fichaToSvg(state, livePal());
+  $("viewInfo").textContent = `Radar · ${state.n} stats · 0–${state.max}`;
+}
 
-function buildControls() {
-  const box = $("controls"); box.innerHTML = "";
+/* --- navegación entre paneles --- */
+function openPanel(name) {
+  document.querySelectorAll("[data-panel]").forEach(p => p.classList.toggle("active", p.dataset.panel === name));
+  document.querySelectorAll("[data-nav]").forEach(b => b.classList.toggle("active", b.dataset.nav === name));
+}
+document.querySelectorAll("[data-nav]").forEach(b => { b.onclick = () => openPanel(b.dataset.nav); });
+
+/* --- configuración: estadísticas --- */
+function renderStats() {
+  const box = $("statEditor"); box.innerHTML = "";
   for (let i = 0; i < state.n; i++) {
-    const r = document.createElement("div"); r.className = "row";
-    r.innerHTML = `<input type="text" value="${esc(state.names[i])}" maxlength="14"><input type="range" min="0" max="${state.max}" step="1" value="${state.stats[i]}"><input type="number" min="0" max="${state.max}" value="${state.stats[i]}">`;
-    const [t, s, v] = r.children;
+    const row = document.createElement("div"); row.className = "stat-row";
+    row.innerHTML = `<input type="text" maxlength="14" value="${esc(state.names[i])}" aria-label="Nombre"><input type="number" min="0" max="${state.max}" value="${state.stats[i]}" aria-label="Valor"><button class="icon" title="Quitar" ${state.n <= 3 ? "disabled" : ""}>×</button><input type="range" class="slider" min="0" max="${state.max}" step="1" value="${state.stats[i]}" aria-label="Deslizador">`;
+    const [t, v, x, s] = row.children;
     t.oninput = () => { state.names[i] = t.value; draw(); };
-    s.oninput = () => { state.stats[i] = +s.value; v.value = s.value; draw(); };
-    v.oninput = () => { const x = clamp(Math.round(+v.value) || 0, 0, state.max); state.stats[i] = x; s.value = x; draw(); };
+    v.oninput = () => { const n = clamp(Math.round(+v.value) || 0, 0, state.max); state.stats[i] = n; s.value = n; draw(); };
     v.onchange = () => { v.value = state.stats[i]; };
-    box.appendChild(r);
+    s.oninput = () => { state.stats[i] = +s.value; v.value = s.value; draw(); };
+    x.onclick = () => removeStat(i);
+    box.appendChild(row);
+  }
+  $("addStat").disabled = state.n >= 10;
+}
+function removeStat(i) {
+  if (state.n <= 3) return;
+  state.names.splice(i, 1); state.names.push("Stat");
+  state.stats.splice(i, 1); state.stats.push(Math.ceil(state.max / 2));
+  state.n--; renderStats(); draw();
+}
+$("addStat").onclick = () => {
+  if (state.n >= 10) return;
+  state.names[state.n] = "Stat " + (state.n + 1);
+  state.stats[state.n] = Math.ceil(state.max / 2);
+  state.n++; renderStats(); draw();
+};
+
+/* --- interruptores de "Mostrar" --- */
+const SWITCHES = { "sw-name": "showNames", "sw-value": "showValue", "sw-rank": "letters" };
+function syncSwitches() {
+  for (const [id, k] of Object.entries(SWITCHES)) {
+    $(id).classList.toggle("active", !!state[k]);
+    $(id).setAttribute("aria-checked", !!state[k]);
   }
 }
+for (const [id, k] of Object.entries(SWITCHES)) $(id).onclick = () => { state[k] = !state[k]; syncSwitches(); draw(); };
 
-function buildRanks() {
-  const box = $("ranks"); box.innerHTML = "";
-  RANKS.forEach((r, k) => {
-    const d = document.createElement("div"); d.className = "rk";
-    d.innerHTML = `<span>${r}</span><input type="number" min="0" max="${state.max}" value="${state.th[k]}" ${k === 0 ? "disabled" : ""}>`;
-    const inp = d.querySelector("input");
-    inp.onchange = () => {
-      const v = Math.max(0, Math.min(state.max, Math.round(+inp.value || 0)));
-      state.th[k] = v;
-      for (let j = k + 1; j < RANKS.length; j++) if (state.th[j] < v) state.th[j] = v;
-      for (let j = k - 1; j > 0; j--) if (state.th[j] > v) state.th[j] = v;
-      buildRanks(); draw();
-    };
-    box.appendChild(d);
-  });
-}
-
-function renderList() {
-  const l = $("list");
-  if (!fichas.length) { l.innerHTML = '<span class="muted">Aún no tienes fichas guardadas.</span>'; return; }
-  l.innerHTML = "";
-  fichas.forEach(f => {
-    const b = document.createElement("button");
-    b.className = "chip" + (f.id === state.id ? " on" : "");
-    b.innerHTML = `<span class="dot" style="background:${esc(f.id === state.id ? state.color : f.color)}"></span>${esc(f.name || "Sin nombre")}`;
-    b.onclick = () => { state = migrate(f); syncAll(); say("Ficha abierta."); };
-    l.appendChild(b);
-  });
-}
-
-function syncAll() {
-  $("cname").value = state.name; $("subtitle").value = state.subtitle;
-  $("count").value = state.n; $("max").value = state.max;
-  $("color").value = state.color; $("letters").checked = state.letters;
-  $("showval").checked = state.showValue;
-  buildControls(); buildRanks(); buildCustom(); setMode(); draw(); renderList();
-}
-
-/* --- eventos del formulario --- */
-for (let k = 3; k <= 10; k++) $("count").add(new Option(k, k));
-$("count").onchange = e => { state.n = +e.target.value; buildControls(); draw(); };
+/* --- identidad, escala y color --- */
 $("cname").oninput = e => { state.name = e.target.value; draw(); };
 $("subtitle").oninput = e => { state.subtitle = e.target.value; draw(); };
-$("color").oninput = e => { state.color = e.target.value; draw(); renderList(); };
-$("letters").onchange = e => { state.letters = e.target.checked; draw(); };
-$("showval").onchange = e => { state.showValue = e.target.checked; draw(); };
-$("rand").onclick = () => { state.stats = state.stats.map(() => Math.floor(Math.random() * (state.max + 1))); buildControls(); draw(); };
-$("reset").onclick = () => { state.stats = state.stats.map(() => Math.ceil(state.max / 2)); buildControls(); draw(); };
-$("auto").onclick = () => { state.th = autoTh(state.max); buildRanks(); draw(); };
+$("color").oninput = e => { state.color = e.target.value; draw(); };
 $("max").onchange = e => {
   const M = clamp(Math.round(+e.target.value) || 10, 3, MAX_SCALE);
   state.max = M; e.target.value = M;
   state.stats = state.stats.map(v => Math.min(v, M));
   state.th = autoTh(M);
-  buildControls(); buildRanks(); draw();
+  renderStats(); renderLetters(); renderCustom(); draw();
 };
 
-/* --- rangos: panel personalizado --- */
+/* --- rangos --- */
 function setMode() {
   const c = state.rankMode === "custom";
   $("panel-letters").hidden = c; $("panel-custom").hidden = !c;
-  $("tab-letters").classList.toggle("on", !c); $("tab-custom").classList.toggle("on", c);
+  $("mode-letters").classList.toggle("active", !c); $("mode-custom").classList.toggle("active", c);
 }
-$("tab-letters").onclick = () => { state.rankMode = "letters"; setMode(); draw(); };
-$("tab-custom").onclick = () => { state.rankMode = "custom"; setMode(); draw(); };
+$("mode-letters").onclick = () => { state.rankMode = "letters"; setMode(); draw(); };
+$("mode-custom").onclick = () => { state.rankMode = "custom"; setMode(); draw(); };
 
-function buildCustom() {
-  const box = $("crows"); box.innerHTML = "";
+function renderLetters() {
+  const box = $("letterRows"); box.innerHTML = "";
+  RANKS.forEach((r, k) => {
+    const d = document.createElement("div"); d.className = "range-row";
+    d.innerHTML = `<div class="range-label">${r}</div><input type="number" min="0" max="${state.max}" value="${state.th[k]}" ${k === 0 ? "disabled" : ""} aria-label="Valor mínimo de ${r}"><span></span>`;
+    const inp = d.querySelector("input");
+    inp.onchange = () => {
+      const v = clamp(Math.round(+inp.value) || 0, 0, state.max);
+      state.th[k] = v;
+      for (let j = k + 1; j < RANKS.length; j++) if (state.th[j] < v) state.th[j] = v;
+      for (let j = k - 1; j > 0; j--) if (state.th[j] > v) state.th[j] = v;
+      renderLetters(); draw();
+    };
+    box.appendChild(d);
+  });
+}
+$("auto").onclick = () => { state.th = autoTh(state.max); renderLetters(); draw(); };
+
+function renderCustom() {
+  const box = $("customRows"); box.innerHTML = "";
   state.custom.forEach((r, k) => {
-    const d = document.createElement("div"); d.className = "crow";
-    d.innerHTML = `<span>Desde</span><input type="number" min="0" max="${state.max}" value="${r.min}" ${k === 0 ? "disabled" : ""}><span>Etiqueta</span><input type="text" maxlength="6" value="${esc(r.label)}">${k === 0 ? "<span></span>" : '<button class="danger" title="Quitar fila">✕</button>'}`;
-    const [, mi, , la, x] = d.children;
-    mi.onchange = () => { r.min = clamp(Math.round(+mi.value) || 1, 1, state.max); state.custom.sort((a, b) => a.min - b.min); buildCustom(); draw(); };
+    const d = document.createElement("div"); d.className = "range-row custom";
+    d.innerHTML = `<input type="number" min="0" max="${state.max}" value="${r.min}" ${k === 0 ? "disabled" : ""} aria-label="Desde"><input type="text" maxlength="6" value="${esc(r.label)}" aria-label="Etiqueta">${k === 0 ? "<span></span>" : '<button class="icon" title="Quitar fila">×</button>'}`;
+    const [mi, la, x] = d.children;
+    mi.onchange = () => { r.min = clamp(Math.round(+mi.value) || 1, 1, state.max); state.custom.sort((a, b) => a.min - b.min); renderCustom(); draw(); };
     la.oninput = () => { r.label = la.value; draw(); };
-    if (k > 0) x.onclick = () => { state.custom.splice(k, 1); buildCustom(); draw(); };
+    if (k > 0) x.onclick = () => { state.custom.splice(k, 1); renderCustom(); draw(); };
     box.appendChild(d);
   });
 }
@@ -255,7 +269,7 @@ $("cadd").onclick = () => {
   if (state.custom.length >= 50) return;
   const last = state.custom[state.custom.length - 1];
   state.custom.push({ min: Math.min(state.max, last.min + Math.max(1, Math.round(state.max / 10))), label: "" });
-  buildCustom(); draw();
+  renderCustom(); draw();
 };
 // Plantilla D&D: modificador = floor((valor - 10) / 2), de -5 (valor 0) a +10 (valor 30).
 $("cdnd").onclick = () => {
@@ -269,29 +283,36 @@ $("cdnd").onclick = () => {
   syncAll(); say("Plantilla D&D aplicada.");
 };
 
-/* --- fichas --- */
-$("new").onclick = () => { state = newFicha(); syncAll(); say("Ficha nueva."); };
-$("save").onclick = () => {
-  state.id = state.id || "f" + Date.now().toString(36);
-  const data = { ...JSON.parse(JSON.stringify(state)), updated: Date.now() };
-  fichas = [data, ...fichas.filter(x => x.id !== state.id)];
-  store.write(fichas); renderList(); say("Ficha guardada.");
-};
-$("del").onclick = () => {
-  if (!state.id) { say("Esta ficha aún no está guardada."); return; }
+/* --- biblioteca --- */
+function renderLibrary() {
+  const box = $("libraryList");
+  if (!fichas.length) { box.innerHTML = '<div class="empty">Aún no tienes fichas guardadas. Edita una y pulsa «Guardar».</div>'; return; }
+  box.innerHTML = "";
+  fichas.forEach(f => {
+    const d = document.createElement("div"); d.className = "library-card" + (f.id === state.id ? " current" : "");
+    d.innerHTML = `<strong><span class="swatch" style="background:${esc(f.color)}"></span>${esc(f.name || "Sin nombre")}</strong><small>${f.n} estadísticas${f.subtitle ? " · " + esc(f.subtitle) : ""}</small><div class="library-actions"><button class="btn sm">Abrir</button><button class="btn sm danger">Borrar</button></div>`;
+    const [open, del] = d.querySelectorAll("button");
+    open.onclick = () => { state = migrate(f); syncAll(); openPanel("config"); say("Ficha abierta."); };
+    del.onclick = () => deleteFicha(f.id);
+    box.appendChild(d);
+  });
+}
+function deleteFicha(id) {
   if (!confirm("¿Borrar esta ficha?")) return;
-  fichas = fichas.filter(x => x.id !== state.id);
-  store.write(fichas); state = newFicha(); syncAll(); say("Ficha borrada.");
-};
+  fichas = fichas.filter(x => x.id !== id);
+  store.write(fichas);
+  if (state.id === id) { state = newFicha(); syncAll(); } else renderLibrary();
+  say("Ficha borrada.");
+}
 
-/* --- descarga --- */
+/* --- acciones --- */
 function saveFile(filename, blob) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-$("dl").onclick = async () => {
+async function downloadPng() {
   const name = (state.name || "ficha").toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-").replace(/^-|-$/g, "") || "ficha";
   const svg = fichaToFile(state);
   try {
@@ -306,6 +327,25 @@ $("dl").onclick = async () => {
     saveFile(name + ".svg", new Blob([svg], { type: "image/svg+xml" }));
     say("No se pudo generar PNG; se descargó SVG.");
   }
+}
+const ACTS = {
+  rand() { state.stats = state.stats.map(() => Math.floor(Math.random() * (state.max + 1))); renderStats(); draw(); },
+  reset() { state.stats = state.stats.map(() => Math.ceil(state.max / 2)); renderStats(); draw(); },
+  new() { state = newFicha(); syncAll(); openPanel("config"); say("Ficha nueva."); },
+  save() {
+    state.id = state.id || "f" + Date.now().toString(36);
+    const data = { ...JSON.parse(JSON.stringify(state)), updated: Date.now() };
+    fichas = [data, ...fichas.filter(x => x.id !== state.id)];
+    store.write(fichas); renderLibrary(); say("Ficha guardada.");
+  },
+  dl: downloadPng
 };
+document.querySelectorAll("[data-act]").forEach(b => { b.onclick = ACTS[b.dataset.act]; });
 
+/* --- inicio --- */
+function syncAll() {
+  $("cname").value = state.name; $("subtitle").value = state.subtitle;
+  $("max").value = state.max; $("color").value = state.color;
+  syncSwitches(); renderStats(); renderLetters(); renderCustom(); setMode(); renderLibrary(); draw();
+}
 syncAll();
