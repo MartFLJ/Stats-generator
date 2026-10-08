@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stat Generator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Stat Generator</h1>
+
+  <section class="card full">
+    <div class="bar between">
+      <strong>Mis fichas</strong>
+      <div class="bar">
+        <button id="new" class="alt">+ Nueva</button>
+        <button id="save">Guardar ficha</button>
+        <button id="dl">Descargar PNG</button>
+        <button id="del" class="danger">Borrar</button>
+      </div>
+    </div>
+    <div id="list"></div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card"><svg id="chart" viewBox="0 0 640 480" role="img" aria-label="Ficha de estadísticas"></svg></section>
+
+  <section class="card">
+    <label class="field">Nombre del personaje<input type="text" id="cname" maxlength="28"></label>
+    <label class="field">Subtítulo (opcional)<input type="text" id="subtitle" maxlength="40" placeholder="Ej: El guardián del norte"></label>
+    <div class="bar spaced">
+      <label>Cantidad de stats: <select id="count"></select></label>
+      <label>Escala 0 a <input type="number" id="max" min="3" max="20" class="num"></label>
+    </div>
+    <div id="controls"></div>
+    <div class="bar spaced">
+      <input type="color" id="color" value="#e0457b" title="Color">
+      <button id="rand" class="alt">Aleatorio</button>
+      <button id="reset" class="alt">Reiniciar</button>
+      <label><input type="checkbox" id="letters" checked> Letras</label>
+    </div>
+  </section>
+
+  <section class="card full">
+    <div class="bar between">
+      <strong>Rangos: valor mínimo para cada letra</strong>
+      <button id="auto" class="alt">Repartir automático</button>
+    </div>
+    <div id="ranks" class="bar"></div>
+    <p class="muted">E empieza en 0. Cada letra se aplica desde su valor mínimo hasta antes de la siguiente.</p>
+  </section>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
