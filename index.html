@@ -24,31 +24,48 @@
     <div id="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="card"><svg id="chart" viewBox="0 0 640 480" role="img" aria-label="Ficha de estadísticas"></svg></section>
+  <section class="card"><svg id="chart" viewBox="0 0 640 500" role="img" aria-label="Ficha de estadísticas"></svg></section>
 
   <section class="card">
     <label class="field">Nombre del personaje<input type="text" id="cname" maxlength="28"></label>
     <label class="field">Subtítulo (opcional)<input type="text" id="subtitle" maxlength="40" placeholder="Ej: El guardián del norte"></label>
     <div class="bar spaced">
       <label>Cantidad de stats: <select id="count"></select></label>
-      <label>Escala 0 a <input type="number" id="max" min="3" max="20" class="num"></label>
+      <label>Escala 0 a <input type="number" id="max" min="3" max="1000" class="num"></label>
     </div>
     <div id="controls"></div>
     <div class="bar spaced">
       <input type="color" id="color" value="#e0457b" title="Color">
       <button id="rand" class="alt">Aleatorio</button>
       <button id="reset" class="alt">Reiniciar</button>
-      <label><input type="checkbox" id="letters" checked> Letras</label>
+      <label><input type="checkbox" id="letters" checked> Etiquetas</label>
+      <label><input type="checkbox" id="showval"> Valor</label>
     </div>
   </section>
 
   <section class="card full">
     <div class="bar between">
-      <strong>Rangos: valor mínimo para cada letra</strong>
-      <button id="auto" class="alt">Repartir automático</button>
+      <strong>Rangos</strong>
+      <div class="bar">
+        <button id="tab-letters" class="tab on">Letras</button>
+        <button id="tab-custom" class="tab">Personalizado</button>
+      </div>
     </div>
-    <div id="ranks" class="bar"></div>
-    <p class="muted">E empieza en 0. Cada letra se aplica desde su valor mínimo hasta antes de la siguiente.</p>
+    <div id="panel-letters">
+      <div class="bar between">
+        <span class="muted">Valor mínimo para cada letra. E empieza en 0.</span>
+        <button id="auto" class="alt">Repartir automático</button>
+      </div>
+      <div id="ranks" class="bar"></div>
+    </div>
+    <div id="panel-custom" hidden>
+      <p class="muted">Cada fila se aplica desde su valor mínimo hasta antes de la siguiente. La primera siempre empieza en 0.</p>
+      <div id="crows"></div>
+      <div class="bar spaced">
+        <button id="cadd" class="alt">+ Agregar fila</button>
+        <button id="cdnd" class="alt">Plantilla D&amp;D</button>
+      </div>
+    </div>
   </section>
 </div>
 <script src="app.js"></script>

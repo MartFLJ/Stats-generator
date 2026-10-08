@@ -13,14 +13,15 @@ h1{grid-column:1/-1;margin:0;font-size:1.5rem;letter-spacing:.04em;text-transfor
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .bar.between{justify-content:space-between;margin-bottom:10px}
 .bar.spaced{margin:14px 0}
-.row{display:grid;grid-template-columns:1fr 1.4fr 28px;gap:10px;align-items:center;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1.4fr 68px;gap:10px;align-items:center;margin-bottom:12px}
+.row input[type=number]{width:100%;text-align:center;padding:6px 2px}
 .val{font-weight:700;text-align:center}
 
 input[type=text],input[type=number],select{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
 input[type=text]{width:100%}
 input[type=range]{width:100%;accent-color:var(--accent)}
 input[type=color]{width:38px;height:34px;border:1px solid var(--line);border-radius:8px;background:none;padding:2px}
-.num{width:64px}
+.num{width:76px}
 
 button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;font:inherit;cursor:pointer}
 button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
@@ -39,3 +40,9 @@ svg{width:100%;height:auto;display:block}
 .rk input{width:58px;text-align:center}
 .muted{color:var(--mute);font-size:.9rem}
 #status{min-height:1.3em;font-size:.9rem;color:var(--mute);margin-top:10px}
+
+[hidden]{display:none!important}
+.tab{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.crow{display:grid;grid-template-columns:auto 84px auto 96px 40px;gap:8px;align-items:center;margin-bottom:8px;font-size:.9rem}
+.crow button{padding:6px 0}
