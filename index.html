@@ -128,6 +128,26 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
 }
 @media (max-width:550px){.workspace{padding:12px}.stat-card{border-radius:17px;padding:8px}}
 
+/* fases 4-6 */
+.hint{background:var(--hover);border-radius:9px;padding:10px 12px;font-size:12px;margin:12px 0;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.hint button{white-space:nowrap}
+.muted{color:var(--muted);font-size:12px;margin:10px 0 0}
+.library-actions{flex-wrap:wrap}
+.btn.sm{flex:1 1 40%}
+.row2.wrap{flex-wrap:wrap}
+.stat-card svg text{user-select:none}
+select{cursor:pointer}
+
+.compare{padding:28px;max-width:760px;width:100%;margin:0 auto}
+.compare-bar{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;margin-bottom:6px}
+.compare-bar .form-group{margin-bottom:0}
+.compare-bar .btn{height:40px}
+.cmp-actions{margin-top:14px}
+.cmp-actions .btn{flex:1}
+.compare .stat-card{width:100%}
+@media (max-width:950px){.compare{padding:16px}}
+@media (max-width:550px){.compare{padding:12px}.compare-bar{grid-template-columns:1fr 1fr}.compare-bar .btn{grid-column:1/-1;order:3;height:34px}}
+
 </style>
 </head>
 <body>
@@ -140,15 +160,16 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
       <button data-nav="config">⚙ Configuración</button>
       <button data-nav="visual">◇ Visualización</button>
       <button data-nav="ranges">≡ Rangos</button>
+      <button data-nav="compare">⇄ Comparar</button>
     </nav>
-    <div class="sidebar-bottom">Fase 3</div>
+    <div class="sidebar-bottom">v5 · fases 7–8</div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <div class="page-title">Stat Generator</div>
       <div class="top-actions">
-        <button class="btn" data-act="rand" title="Valores aleatorios">🎲<span class="hide-sm"> Aleatorio</span></button>
+        <button class="btn hide-sm" data-act="rand" title="Valores aleatorios">Aleatorio</button>
         <button class="btn" data-act="dl" title="Descargar imagen">⬇<span class="hide-sm"> PNG</span></button>
         <button class="btn" data-act="save">Guardar</button>
         <button class="btn primary" data-act="new">+<span class="hide-sm"> Nueva</span></button>
@@ -159,7 +180,7 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
 
       <section class="preview-area">
         <div class="preview-label"><span>Previsualización</span><span id="viewInfo"></span></div>
-        <div class="stat-card"><svg id="chart" viewBox="0 0 640 500" role="img" aria-label="Ficha de estadísticas"></svg></div>
+        <div class="stat-card" id="card"></div>
       </section>
 
       <aside class="editor">
@@ -170,32 +191,33 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
           <div class="panel-description">Tus fichas guardadas en este navegador.</div>
           <button class="btn primary full" data-act="new">+ Nueva ficha</button>
           <div class="library-list" id="libraryList"></div>
+          <div class="section">
+            <div class="section-title">Importar / Exportar (JSON)</div>
+            <div class="row2 wrap">
+              <button class="btn" id="importBtn">Importar JSON</button>
+              <button class="btn" id="exportAll">Exportar todas</button>
+              <button class="btn" id="exportCur">Exportar ficha actual</button>
+            </div>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+            <p class="muted">Las fichas importadas nunca pisan las tuyas: si ya existe una igual, se guarda como copia.</p>
+          </div>
         </div>
 
         <!-- CONFIGURACIÓN -->
         <div class="panel" data-panel="config">
           <div class="panel-title">Configuración</div>
           <div class="panel-description">Define el contenido de tu ficha.</div>
-
-          <div class="form-group"><label for="cname">Nombre</label><input type="text" id="cname" maxlength="28"></div>
+          <div class="form-group"><label for="cname">Nombre</label><input type="text" id="cname" maxlength="36"></div>
           <div class="form-group"><label for="subtitle">Subtítulo</label><input type="text" id="subtitle" maxlength="40" placeholder="Opcional"></div>
-
+          <div class="form-group"><label for="max">Escala: valor máximo (3 a 1000)</label><input type="number" id="max" min="3" max="1000"></div>
           <div class="section">
             <div class="section-title">Estadísticas</div>
             <div class="stat-editor" id="statEditor"></div>
             <button class="add-stat" id="addStat">+ Agregar estadística</button>
           </div>
-
-          <div class="section">
-            <div class="section-title">Mostrar</div>
-            <div class="option"><span>Mostrar nombre</span><button class="switch" id="sw-name" role="switch"><span class="switch-dot"></span></button></div>
-            <div class="option"><span>Mostrar valor</span><button class="switch" id="sw-value" role="switch"><span class="switch-dot"></span></button></div>
-            <div class="option"><span>Mostrar rango</span><button class="switch" id="sw-rank" role="switch"><span class="switch-dot"></span></button></div>
-          </div>
-
           <div class="section">
             <div class="row2">
-              <button class="btn" data-act="rand">🎲 Aleatorio</button>
+              <button class="btn" data-act="rand">Aleatorio</button>
               <button class="btn" data-act="reset">↺ Reiniciar</button>
             </div>
           </div>
@@ -206,45 +228,69 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
           <div class="panel-title">Visualización</div>
           <div class="panel-description">Elige cómo representar las estadísticas.</div>
           <div class="view-options">
-            <button class="view-option active">Radar</button>
-            <button class="view-option" disabled title="Próximamente">Barras</button>
-            <button class="view-option" disabled title="Próximamente">Tabla</button>
+            <button class="view-option" data-view="radar">Radar</button>
+            <button class="view-option" data-view="bars">Barras</button>
+            <button class="view-option" data-view="table">Tabla</button>
           </div>
+          <div class="option" id="circleRow" style="margin-top:14px"><span>Marco circular</span><button class="switch" id="sw-circle" role="switch"><span class="switch-dot"></span></button></div>
           <div class="section">
-            <div class="section-title">Escala</div>
-            <div class="form-group"><label for="max">Valor máximo (3 a 1000)</label><input type="number" id="max" min="3" max="1000"></div>
+            <div class="section-title">Mostrar</div>
+            <div class="option"><span>Nombre</span><button class="switch" id="sw-name" role="switch"><span class="switch-dot"></span></button></div>
+            <div class="option"><span>Valor</span><button class="switch" id="sw-value" role="switch"><span class="switch-dot"></span></button></div>
+            <div class="option"><span>Rango</span><button class="switch" id="sw-rank" role="switch"><span class="switch-dot"></span></button></div>
           </div>
           <div class="section">
             <div class="section-title">Apariencia</div>
             <div class="form-group"><label for="color">Color de acento</label><input type="color" id="color" class="color-input"></div>
+          </div>
+          <div class="section">
+            <div class="section-title">Exportar ficha</div>
+            <div class="row2">
+              <button class="btn" data-act="dl">PNG</button>
+              <button class="btn" id="expSvg">SVG</button>
+              <button class="btn" id="expCsv">CSV</button>
+            </div>
+            <p class="muted">PNG y SVG son la imagen de la ficha (el SVG se puede ampliar sin perder calidad). CSV es la tabla de datos, para Excel o Sheets.</p>
           </div>
         </div>
 
         <!-- RANGOS -->
         <div class="panel" data-panel="ranges">
           <div class="panel-title">Rangos</div>
-          <div class="panel-description">Define cómo se interpretan los valores.</div>
-          <div class="view-options two">
-            <button class="view-option" id="mode-letters">Letras</button>
-            <button class="view-option" id="mode-custom">Personalizado</button>
+          <div class="panel-description">Sistemas reutilizables: cualquier ficha puede usar cualquiera.</div>
+          <div class="form-group"><label for="sysSelect">Sistema de esta ficha</label><select id="sysSelect"></select></div>
+          <div id="sysHint" class="hint" hidden></div>
+          <div class="row2">
+            <button class="btn" id="sysNew">+ Nuevo</button>
+            <button class="btn" id="sysDup">Duplicar</button>
+            <button class="btn danger" id="sysDel">Borrar</button>
           </div>
-
-          <div id="panel-letters" class="section">
-            <div class="section-title">Valor mínimo de cada letra</div>
-            <div class="range-list" id="letterRows"></div>
-            <button class="add-range" id="auto">Repartir automático</button>
-          </div>
-
-          <div id="panel-custom" class="section" hidden>
-            <div class="section-title">Filas personalizadas</div>
-            <div class="range-row custom head"><span>Desde</span><span>Etiqueta</span><span></span></div>
-            <div class="range-list" id="customRows"></div>
-            <button class="add-range" id="cadd">+ Agregar rango</button>
-            <button class="add-range" id="cdnd">Plantilla D&amp;D</button>
+          <div class="section">
+            <div class="form-group"><label for="sysName">Nombre del sistema</label><input type="text" id="sysName" maxlength="24"></div>
+            <div class="form-group"><label for="sysMode">Los valores mínimos son</label>
+              <select id="sysMode"><option value="percent">% del máximo (se adapta a cualquier escala)</option><option value="absolute">Valores absolutos</option></select></div>
+            <div class="range-row custom head" id="sysHead"><span>Desde</span><span>Etiqueta</span><span></span></div>
+            <div class="range-list" id="sysRows"></div>
+            <button class="add-range" id="sysAdd">+ Agregar rango</button>
+            <p class="muted" id="sysLock" hidden>Es un sistema incluido: duplícalo para poder editarlo.</p>
           </div>
         </div>
 
       </aside>
+    </section>
+
+    <section class="compare" id="compareScreen" hidden>
+      <div class="compare-bar">
+        <div class="form-group"><label for="cmpA">Personaje 1</label><select id="cmpA"></select></div>
+        <button class="btn" id="cmpSwap" title="Intercambiar" aria-label="Intercambiar">⇄</button>
+        <div class="form-group"><label for="cmpB">Personaje 2</label><select id="cmpB"></select></div>
+      </div>
+      <div class="stat-card" id="cmpCard"></div>
+      <div class="row2 cmp-actions">
+        <button class="btn" data-act="dl">Descargar PNG</button>
+        <button class="btn" id="cmpSvg">Descargar SVG</button>
+      </div>
+      <p class="muted" id="cmpNote"></p>
     </section>
   </main>
 </div>
@@ -254,183 +300,382 @@ input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)
   <button data-nav="config">Configuración</button>
   <button data-nav="visual">Vista</button>
   <button data-nav="ranges">Rangos</button>
+  <button data-nav="compare">VS</button>
 </nav>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
 "use strict";
 
 /* =========================================================
-   1. MODELO: la ficha y sus reglas (sin DOM)
+   1. MODELO
    ========================================================= */
-const VERSION = 3;
+const VERSION = 4;
 const MAX_SCALE = 1000;
 const DEF_NAMES = ["Poder","Velocidad","Alcance","Precisión","Resistencia","Potencial","Agilidad","Inteligencia","Suerte","Carisma"];
-const RANKS = ["E","D","C","B","A","S","S+"];
+const OLD_RANKS = ["E","D","C","B","A","S","S+"];      // solo para migrar fichas antiguas
+const VIEWS = { radar: "Radar", bars: "Barras", table: "Tabla" };
 
-// Valor mínimo de cada letra repartido de forma pareja entre 0 y max.
-const autoTh = M => RANKS.map((_, k) => Math.round(k * M / 6));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const clone = o => JSON.parse(JSON.stringify(o));
+const rid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
+/* ---------- sistemas de rangos (independientes de las fichas) ---------- */
+// mode "percent": el mínimo es un % del máximo de la ficha. "absolute": valor directo.
+const mk = (id, name, mode, rows, extra) => ({ id, name, mode, builtin: true, rows: rows.map(([min, label]) => ({ min, label })), ...extra });
+const BUILTIN = [
+  mk("b-letters", "Letras E–S+", "percent", [[0,"E"],[17,"D"],[33,"C"],[50,"B"],[67,"A"],[83,"S"],[100,"S+"]]),
+  mk("b-classic", "Clásico S–E", "percent", [[0,"E"],[40,"D"],[60,"C"],[70,"B"],[80,"A"],[90,"S"]]),
+  mk("b-simple", "Simple A–F", "percent", [[0,"F"],[60,"D"],[70,"C"],[80,"B"],[90,"A"]]),
+  mk("b-stars", "Estrellas", "percent", [[0,"★"],[20,"★★"],[40,"★★★"],[60,"★★★★"],[80,"★★★★★"]]),
+  mk("b-dnd", "D&D modificador", "absolute", [...Array(16)].map((_, i) => [i * 2, (i - 5 >= 0 ? "+" : "") + (i - 5)]), { suggestMax: 30 })
+];
+let userSystems = [];
+const allSystems = () => [...BUILTIN, ...userSystems];
+const getSystem = id => allSystems().find(s => s.id === id);
+
+function cleanSystem(s) {
+  s = s && typeof s === "object" ? s : {};
+  const mode = s.mode === "absolute" ? "absolute" : "percent";
+  const top = mode === "percent" ? 100 : MAX_SCALE;
+  let rows = (Array.isArray(s.rows) ? s.rows : []).slice(0, 50)
+    .map(r => ({ min: clamp(Math.round(+(r && r.min)) || 0, 0, top), label: String((r && r.label) ?? "").slice(0, 6) }))
+    .sort((a, b) => a.min - b.min);
+  if (!rows.length) rows = [{ min: 0, label: "—" }];
+  rows[0].min = 0;
+  return { id: typeof s.id === "string" && s.id ? s.id.slice(0, 40) : rid("u-"), name: String(s.name || "Sistema").slice(0, 24), mode, rows };
+}
+
+function labelOf(f, v) {
+  const s = getSystem(f.system) || f.systemSnap || BUILTIN[0];
+  let l = s.rows[0].label;
+  for (const r of s.rows) if (s.mode === "percent" ? v * 100 >= r.min * f.max : v >= r.min) l = r.label;
+  return l;
+}
+
+/* ---------- la ficha ---------- */
 const newFicha = () => ({
-  v: VERSION, id: null,
+  v: VERSION, id: null, updated: 0,
   name: "Nuevo personaje", subtitle: "",
-  n: 6, names: [...DEF_NAMES],
-  max: 10, stats: [10,8,6,8,4,10,6,8,4,6],
-  rankMode: "letters",                 // "letters" | "custom"
-  th: autoTh(10),                      // umbrales del panel de letras
-  custom: [{ min: 0, label: "—" }],    // filas del panel personalizado
-  showValue: false,
-  showNames: true,
-  color: "#e0457b", letters: true      // letters = mostrar etiquetas
+  n: 6, names: [...DEF_NAMES], max: 10, stats: [10,8,6,8,4,10,6,8,4,6],
+  view: "radar", circle: true,
+  system: "b-letters", systemSnap: null,
+  showNames: true, showValue: false, showRank: true,
+  color: "#e0457b"
 });
 
-// Convierte y sanea fichas de cualquier versión al formato actual.
+// Construye una ficha válida a partir de cualquier dato (versiones antiguas, JSON importado, etc.).
+// Solo copia campos conocidos y sanea cada uno.
 function migrate(raw) {
-  const f = { ...newFicha(), ...JSON.parse(JSON.stringify(raw)) };
-  if (!raw.v) {                        // v1: escala desde 1
-    if (!raw.max) { f.max = 5; f.th = autoTh(5); }
-    f.th[0] = 0;
+  raw = raw && typeof raw === "object" ? raw : {};
+  let { names, stats, n, max } = raw;
+  if (Array.isArray(stats) && stats.some(x => x && typeof x === "object")) {      // formato simple [{name, value}]
+    const list = stats.slice(0, 10);
+    names = list.map(x => x && x.name); stats = list.map(x => x && x.value); n = list.length;
+    if (!max) { const m = Math.max(0, ...list.map(x => +(x && x.value) || 0)); max = m <= 10 ? 10 : m <= 100 ? 100 : 1000; }
   }
-  delete f.stand;
-  f.max = clamp(Math.round(+f.max) || 10, 3, MAX_SCALE);
-  f.n = clamp(Math.round(+f.n) || 6, 3, 10);
-  f.names = DEF_NAMES.map((d, i) => String(f.names?.[i] ?? d).slice(0, 14));
-  f.stats = DEF_NAMES.map((_, i) => clamp(Math.round(+f.stats?.[i]) || 0, 0, f.max));
-  const th = RANKS.map((_, k) => clamp(Math.round(+f.th?.[k]) || 0, 0, f.max));
-  th[0] = 0;
-  for (let k = 1; k < th.length; k++) th[k] = Math.max(th[k], th[k - 1]);
-  f.th = th;
-  let c = (Array.isArray(f.custom) ? f.custom : [])
-    .map(r => ({ min: clamp(Math.round(+r.min) || 0, 0, MAX_SCALE), label: String(r.label ?? "").slice(0, 6) }))
-    .sort((a, b) => a.min - b.min);
-  if (!c.length) c = [{ min: 0, label: "—" }];
-  c[0].min = 0;
-  f.custom = c.slice(0, 50);
-  f.rankMode = f.rankMode === "custom" ? "custom" : "letters";
-  f.showValue = !!f.showValue;
-  f.showNames = f.showNames !== false;
-  f.letters = f.letters !== false;
-  f.color = /^#[0-9a-f]{6}$/i.test(f.color) ? f.color : "#e0457b";
-  f.name = String(f.name ?? "").slice(0, 28);
-  f.subtitle = String(f.subtitle ?? "").slice(0, 40);
-  f.v = VERSION;
+  if (!raw.v && !max) max = 5;                                                     // v1
+  max = clamp(Math.round(+max) || 10, 3, MAX_SCALE);
+  const f = newFicha();
+  f.id = typeof raw.id === "string" && raw.id ? raw.id.slice(0, 40) : null;
+  f.updated = Number(raw.updated) || 0;
+  f.name = String(raw.name ?? f.name).slice(0, 40);
+  f.subtitle = String(raw.subtitle ?? "").slice(0, 40);
+  f.max = max;
+  f.n = clamp(Math.round(+n) || 6, 3, 10);
+  f.names = DEF_NAMES.map((d, i) => String(Array.isArray(names) && names[i] != null ? names[i] : d).slice(0, 14));
+  f.stats = DEF_NAMES.map((_, i) => clamp(Math.round(+(Array.isArray(stats) ? stats[i] : 0)) || 0, 0, max));
+
+  // sistema de rangos
+  let system = typeof raw.system === "string" ? raw.system.slice(0, 40) : null, snap = null;
+  if (raw.systemSnap && typeof raw.systemSnap === "object") snap = cleanSystem(raw.systemSnap);
+  if (!system) {                                                                   // fichas v1–v3
+    if (raw.rankMode === "custom" && Array.isArray(raw.custom)) {
+      snap = cleanSystem({ mode: "absolute", rows: raw.custom, name: (raw.name || "Ficha") + " (rangos)" });
+      snap.id = "m-" + hash(JSON.stringify(snap.rows)); system = snap.id;
+    } else {
+      const th = OLD_RANKS.map((_, k) => clamp(Math.round(+(raw.th && raw.th[k])) || 0, 0, max));
+      th[0] = 0; for (let k = 1; k < th.length; k++) th[k] = Math.max(th[k], th[k - 1]);
+      const auto = OLD_RANKS.map((_, k) => Math.round(k * max / 6));
+      if (!Array.isArray(raw.th) || th.every((t, k) => t === auto[k])) system = "b-letters";
+      else {
+        snap = cleanSystem({ mode: "absolute", rows: OLD_RANKS.map((l, k) => ({ min: th[k], label: l })), name: (raw.name || "Ficha") + " (letras)" });
+        snap.id = "m-" + hash(JSON.stringify(snap.rows)); system = snap.id;
+      }
+    }
+  }
+  if (system.startsWith("b-")) snap = null; else if (snap) snap.id = system;
+  f.system = system; f.systemSnap = snap;
+
+  f.view = VIEWS[raw.view] ? raw.view : "radar";
+  f.circle = raw.circle !== false;
+  f.showNames = raw.showNames !== false;
+  f.showValue = !!raw.showValue;
+  f.showRank = (raw.showRank ?? raw.letters) !== false;
+  f.color = typeof raw.color === "string" && /^#[0-9a-f]{6}$/i.test(raw.color) ? raw.color : "#e0457b";
   return f;
 }
 
-function rankOf(f, v) {
-  let r = 0;
-  f.th.forEach((t, k) => { if (v >= t) r = k; });
-  return RANKS[r];
+// Si la ficha trae un sistema que esta biblioteca no tiene, lo agrega.
+function ensureSystem(f) {
+  if (f.system && f.systemSnap && !getSystem(f.system)) { userSystems.push(cleanSystem(f.systemSnap)); return true; }
+  return false;
 }
-
-// Etiqueta de un valor según el panel activo (letras o personalizado).
-function labelOf(f, v) {
-  if (f.rankMode === "custom") {
-    let l = "";
-    f.custom.forEach(r => { if (v >= r.min) l = r.label; });
-    return l;
-  }
-  return rankOf(f, v);
+// Antes de guardar o exportar: la ficha lleva una copia de su sistema personalizado para poder compartirse.
+function finalize(f) {
+  const s = userSystems.find(x => x.id === f.system);
+  f.systemSnap = s ? clone(s) : null;
+  return f;
 }
 
 /* =========================================================
-   2. DIBUJO: ficha -> SVG (función pura, reutilizable)
+   2. DIBUJO: ficha -> SVG (Radar, Barras, Tabla)
    ========================================================= */
-const G = { W: 640, H: 500, CX: 320, CY: 285, R: 115, RC: 155 };
-const EXPORT_PAL = { bg: "#f6f4ef", ink: "#1d1b20", mute: "#77737d", line: "#cfcac0" };
-// Paso "redondo" para los anillos: nunca más de 10 hilos, sea cual sea la escala.
+const W = 640;
+const EXPORT_PAL = { bg: "#f6f4ef", ink: "#1d1b20", mute: "#77737d", line: "#d6d1c6" };
+const FONT = `font-family="'Trebuchet MS',Arial,sans-serif"`;
+const points = p => p.map(q => q.map(n => n.toFixed(1)).join(",")).join(" ");
+
 function niceStep(M) {
   for (const b of [1, 2, 5, 10, 20, 50, 100, 200, 500]) if (M / b <= 10) return b;
   return 500;
 }
-const FONT = `font-family="'Trebuchet MS',Arial,sans-serif"`;
 
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-const points = p => p.map(q => q.map(n => n.toFixed(1)).join(",")).join(" ");
+function header(f, P) {
+  const name = (f.name || "Sin nombre").toUpperCase();
+  const fs = Math.min(30, 560 / (Math.max(name.length, 1) * 0.66));
+  let h = `<text x="${W / 2}" y="52" text-anchor="middle" ${FONT} font-size="${fs.toFixed(1)}" font-weight="900" fill="${P.ink}">${esc(name)}</text>`;
+  if (f.subtitle) h += `<text x="${W / 2}" y="80" text-anchor="middle" ${FONT} font-size="16" fill="${P.mute}">${esc(f.subtitle)}</text>`;
+  return h;
+}
 
-function fichaToSvg(f, P) {
-  const N = f.n, M = f.max, { CX, CY, R, RC } = G;
+function radarBody(f, P) {
+  const N = f.n, M = f.max, cx = 320, cy = 300, circ = f.circle;
+  const R = circ ? 115 : 128, RC = 155;
+  const rankR = circ ? RC - 24 : R + 16, nameR = circ ? RC + 26 : R + 40;
   const ang = i => -Math.PI / 2 + i * 2 * Math.PI / N;
-  const pt = (i, r) => [CX + Math.cos(ang(i)) * r, CY + Math.sin(ang(i)) * r];
+  const pt = (i, r) => [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r];
   const ring = k => points([...Array(N)].map((_, i) => pt(i, R * k / M)));
   let h = "";
-
-  h += `<text x="${CX}" y="52" text-anchor="middle" ${FONT} font-size="30" font-weight="900" fill="${P.ink}">${esc(f.name || "Sin nombre").toUpperCase()}</text>`;
-  if (f.subtitle) h += `<text x="${CX}" y="80" text-anchor="middle" ${FONT} font-size="16" fill="${P.mute}">${esc(f.subtitle)}</text>`;
-
   const step = niceStep(M), levels = [];
   for (let k = step; k < M - step * 0.4; k += step) levels.push(k);
-  levels.push(M);                      // el borde exterior siempre es el máximo
+  levels.push(M);
   levels.forEach(k => { h += `<polygon points="${ring(k)}" fill="none" stroke="${P.line}" stroke-width="1.2"/>`; });
-  for (let i = 0; i < N; i++) { const [x, y] = pt(i, R); h += `<line x1="${CX}" y1="${CY}" x2="${x}" y2="${y}" stroke="${P.line}" stroke-width="1.2"/>`; }
-  h += `<circle cx="${CX}" cy="${CY}" r="${RC}" fill="none" stroke="${P.ink}" stroke-width="3"/>`;
-
+  for (let i = 0; i < N; i++) { const [x, y] = pt(i, R); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${P.line}" stroke-width="1.2"/>`; }
+  if (circ) h += `<circle cx="${cx}" cy="${cy}" r="${RC}" fill="none" stroke="${P.ink}" stroke-width="3"/>`;
   const data = [...Array(N)].map((_, i) => pt(i, R * f.stats[i] / M));
   h += `<polygon points="${points(data)}" fill="${f.color}" fill-opacity=".5" stroke="${f.color}" stroke-width="3" stroke-linejoin="round"/>`;
-  data.forEach(([x, y]) => h += `<circle cx="${x}" cy="${y}" r="4.5" fill="${f.color}"/>`);
-
+  data.forEach(([x, y]) => { h += `<circle cx="${x}" cy="${y}" r="4.5" fill="${f.color}"/>`; });
   for (let i = 0; i < N; i++) {
-    const [a, b] = pt(i, RC - 9), [c, d] = pt(i, RC + 9);
-    h += `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${P.ink}" stroke-width="3"/>`;
-    if (f.letters) {
-      const [x, y] = pt(i, RC - 24);
-      h += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="17" font-weight="900" fill="${f.color}">${esc(labelOf(f, f.stats[i]))}</text>`;
-    }
-    const [x, y] = pt(i, RC + 22), co = Math.cos(ang(i));
+    if (circ) { const [a, b] = pt(i, RC - 9), [c, d] = pt(i, RC + 9); h += `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${P.ink}" stroke-width="3"/>`; }
+    if (f.showRank) { const [x, y] = pt(i, rankR); h += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="${circ ? 17 : 15}" font-weight="900" fill="${f.color}">${esc(labelOf(f, f.stats[i]))}</text>`; }
+    const co = Math.cos(ang(i)), two = f.showValue && f.showNames;
+    const [x, y] = pt(i, nameR + (two ? 14 * Math.abs(Math.sin(ang(i))) : 0));
     const an = co > 0.3 ? "start" : co < -0.3 ? "end" : "middle";
     const both = f.showValue && f.showNames, dy = both ? -8 : 0;
     if (f.showNames) h += `<text x="${x}" y="${y + dy}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
     if (f.showValue) h += `<text x="${x}" y="${y + (both ? 9 : 0)}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="${both ? 13 : 15}" font-weight="${both ? 400 : 700}" fill="${both ? P.mute : P.ink}">${f.stats[i]}</text>`;
   }
-  return h;
+  return { inner: h, h: 530 };
 }
 
-// SVG completo e independiente (para exportar).
-const fichaToFile = f =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="${G.W * 2}" height="${G.H * 2}" viewBox="0 0 ${G.W} ${G.H}">` +
-  `<rect width="${G.W}" height="${G.H}" fill="${EXPORT_PAL.bg}"/>${fichaToSvg(f, EXPORT_PAL)}</svg>`;
+function barsBody(f, P) {
+  const top = 124, rowH = 58, x0 = 44, x1 = 596;
+  let h = "";
+  for (let i = 0; i < f.n; i++) {
+    const y = top + i * rowH, v = f.stats[i];
+    let right = x1;
+    if (f.showRank) {
+      const lab = labelOf(f, v), w = Math.max(30, lab.length * 11 + 16);
+      h += `<rect x="${right - w}" y="${y - 12}" width="${w}" height="24" rx="7" fill="${f.color}" fill-opacity=".18"/>`;
+      h += `<text x="${right - w / 2}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="13" font-weight="900" fill="${f.color}">${esc(lab)}</text>`;
+      right -= w + 10;
+    }
+    if (f.showValue) h += `<text x="${right}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="17" font-weight="700" fill="${P.ink}">${v}</text>`;
+    if (f.showNames) h += `<text x="${x0}" y="${y}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
+    h += `<rect x="${x0}" y="${y + 16}" width="${x1 - x0}" height="10" rx="5" fill="${P.line}"/>`;
+    if (v > 0) h += `<rect x="${x0}" y="${y + 16}" width="${((x1 - x0) * v / f.max).toFixed(1)}" height="10" rx="5" fill="${f.color}"/>`;
+  }
+  return { inner: h, h: top + f.n * rowH + 6 };
+}
+
+function tableBody(f, P) {
+  const top = 118, x0 = 44, x1 = 596, vx = f.showRank ? 480 : x1;
+  let h = `<text x="${x0}" y="${top}" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">ESTADÍSTICA</text>`;
+  if (f.showValue) h += `<text x="${vx}" y="${top}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">VALOR</text>`;
+  if (f.showRank) h += `<text x="${x1}" y="${top}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">RANGO</text>`;
+  h += `<line x1="${x0}" y1="${top + 14}" x2="${x1}" y2="${top + 14}" stroke="${P.ink}" stroke-width="2"/>`;
+  for (let i = 0; i < f.n; i++) {
+    const y = top + 42 + i * 40;
+    h += `<text x="${x0}" y="${y}" dominant-baseline="central" ${FONT} font-size="15" font-weight="600" fill="${P.ink}">${esc(f.names[i])}</text>`;
+    if (f.showValue) h += `<text x="${vx}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" fill="${P.ink}">${f.stats[i]}</text>`;
+    if (f.showRank) h += `<text x="${x1}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" font-weight="900" fill="${f.color}">${esc(labelOf(f, f.stats[i]))}</text>`;
+    h += `<line x1="${x0}" y1="${y + 20}" x2="${x1}" y2="${y + 20}" stroke="${P.line}" stroke-width="1"/>`;
+  }
+  return { inner: h, h: top + 42 + f.n * 40 + 14 };
+}
+
+const bodyFor = (f, P) => (f.view === "bars" ? barsBody : f.view === "table" ? tableBody : radarBody)(f, P);
+
+// Vista previa (se inserta en la página).
+function svgDoc(f, P) {
+  const { inner, h } = bodyFor(f, P);
+  return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Ficha de estadísticas">${header(f, P)}${inner}</svg>`;
+}
+// Archivo independiente (para descargar), a doble resolución y con fondo.
+function fichaToFile(f) {
+  const P = EXPORT_PAL, { inner, h } = bodyFor(f, P);
+  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}"><rect width="${W}" height="${h}" fill="${P.bg}"/>${header(f, P)}${inner}</svg>` };
+}
+
+
+/* ---------- comparación de dos personajes ---------- */
+function pickColors(A, B) {
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const dist = (x, y) => { const p = rgb(x), q = rgb(y); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+  let b = B.color;
+  if (dist(A.color, b) < 90) b = dist(A.color, "#2f7de1") >= 90 ? "#2f7de1" : "#e8a21a";
+  return [A.color, b];
+}
+// Ejes comunes: las stats con el mismo nombre se alinean; el resto queda solo de un lado.
+function compareAxes(A, B) {
+  const list = [], idx = new Map();
+  const add = (f, side) => {
+    const seen = {};
+    for (let i = 0; i < f.n; i++) {
+      const name = f.names[i].trim() || "Stat " + (i + 1), k0 = name.toLowerCase();
+      const key = k0 + "#" + (seen[k0] = (seen[k0] ?? -1) + 1);
+      if (!idx.has(key)) { idx.set(key, list.length); list.push({ name, a: null, b: null }); }
+      list[idx.get(key)][side] = i;
+    }
+  };
+  add(A, "a"); add(B, "b");
+  return list;
+}
+function compareBody(A, B, P) {
+  const [ca, cb] = pickColors(A, B), axes = compareAxes(A, B), N = axes.length;
+  const cx = 320, cy = 300, R = 120, fs = N > 10 ? 11 : 13;
+  const na = (A.name || "Sin nombre").toUpperCase(), nb = (B.name || "Sin nombre").toUpperCase();
+  const tfs = Math.min(28, 560 / ((na.length + nb.length + 4) * 0.66));
+  let h = `<text x="${cx}" y="56" text-anchor="middle" ${FONT} font-size="${tfs.toFixed(1)}" font-weight="900"><tspan fill="${ca}">${esc(na)}</tspan><tspan fill="${P.mute}" font-weight="400"> VS </tspan><tspan fill="${cb}">${esc(nb)}</tspan></text>`;
+  const ang = i => -Math.PI / 2 + i * 2 * Math.PI / N, pt = (i, r) => [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r];
+  for (let k = 1; k <= 5; k++) h += `<polygon points="${points([...Array(N)].map((_, i) => pt(i, R * k / 5)))}" fill="none" stroke="${P.line}" stroke-width="1.2"/>`;
+  for (let i = 0; i < N; i++) { const [x, y] = pt(i, R); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${P.line}" stroke-width="1.2"/>`; }
+  const val = (f, i) => (i == null ? null : f.stats[i]);
+  [[A, "a", ca], [B, "b", cb]].forEach(([f, key, col]) => {
+    const pts = axes.map((ax, i) => pt(i, R * (val(f, ax[key]) == null ? 0 : val(f, ax[key]) / f.max)));
+    h += `<polygon points="${points(pts)}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-width="3" stroke-linejoin="round"/>`;
+    pts.forEach(([x, y]) => { h += `<circle cx="${x}" cy="${y}" r="4" fill="${col}"/>`; });
+  });
+  axes.forEach((ax, i) => {
+    const [x, y] = pt(i, R + 22), co = Math.cos(ang(i));
+    h += `<text x="${x}" y="${y}" text-anchor="${co > 0.3 ? "start" : co < -0.3 ? "end" : "middle"}" dominant-baseline="central" ${FONT} font-size="${fs}" font-weight="700" fill="${P.ink}">${esc(ax.name)}</text>`;
+  });
+
+  // tabla VS
+  const y0 = cy + R + 72, xn = 44, xa = 340, xb = 474, xd = 596;
+  const short = t => esc(t.toUpperCase().slice(0, 11));
+  h += `<text x="${xn}" y="${y0}" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">ESTADÍSTICA</text>`;
+  h += `<text x="${xa}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${ca}">${short(A.name || "A")}</text>`;
+  h += `<text x="${xb}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${cb}">${short(B.name || "B")}</text>`;
+  h += `<text x="${xd}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">DIF</text>`;
+  h += `<line x1="${xn}" y1="${y0 + 14}" x2="${xd}" y2="${y0 + 14}" stroke="${P.ink}" stroke-width="2"/>`;
+  const same = A.max === B.max;
+  axes.forEach((ax, i) => {
+    const y = y0 + 40 + i * 30, va = val(A, ax.a), vb = val(B, ax.b);
+    const pa = va == null ? null : va / A.max, pb = vb == null ? null : vb / B.max;
+    const cell = (f, v) => v == null ? "—" : f.showRank ? `${v} · ${esc(labelOf(f, v))}` : String(v);
+    const win = (pa != null && pb != null && pa !== pb) ? (pa > pb ? "a" : "b") : null;
+    h += `<text x="${xn}" y="${y}" dominant-baseline="central" ${FONT} font-size="14" font-weight="600" fill="${P.ink}">${esc(ax.name)}</text>`;
+    h += `<text x="${xa}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "a" ? 900 : 400}" fill="${win === "a" ? ca : P.ink}">${cell(A, va)}</text>`;
+    h += `<text x="${xb}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "b" ? 900 : 400}" fill="${win === "b" ? cb : P.ink}">${cell(B, vb)}</text>`;
+    if (va != null && vb != null) {
+      const d = same ? va - vb : Math.round((pa - pb) * 100);
+      const t = d === 0 ? "=" : (d > 0 ? "+" : "") + d + (same ? "" : "%");
+      h += `<text x="${xd}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="700" fill="${d > 0 ? ca : d < 0 ? cb : P.mute}">${t}</text>`;
+    }
+    h += `<line x1="${xn}" y1="${y + 15}" x2="${xd}" y2="${y + 15}" stroke="${P.line}" stroke-width="1"/>`;
+  });
+  let H = y0 + 40 + N * 30 + 6;
+  if (!same) {
+    h += `<text x="${cx}" y="${H + 14}" text-anchor="middle" ${FONT} font-size="11" fill="${P.mute}">Escalas distintas: cada personaje se dibuja respecto a su propio máximo (0–${A.max} y 0–${B.max}). DIF en puntos porcentuales.</text>`;
+    H += 30;
+  }
+  return { inner: h, h: H + 10 };
+}
+function compareDoc(A, B, P) {
+  const { inner, h } = compareBody(A, B, P);
+  return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Comparación de personajes">${inner}</svg>`;
+}
+function compareFile(A, B) {
+  const P = EXPORT_PAL, { inner, h } = compareBody(A, B, P);
+  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}"><rect width="${W}" height="${h}" fill="${P.bg}"/>${inner}</svg>` };
+}
+
+/* ---------- CSV ---------- */
+function csvCell(v) {
+  let s = String(v);
+  if (/^[=@\t\r]/.test(s) || (/^[+-]/.test(s) && !/^[+-]?\d+(\.\d+)?$/.test(s))) s = "'" + s;   // evita fórmulas en Excel
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function toCsv(f) {
+  const rows = [["Estadística", "Valor", "Máximo", "Rango"]];
+  for (let i = 0; i < f.n; i++) rows.push([f.names[i], f.stats[i], f.max, labelOf(f, f.stats[i])]);
+  return "\ufeff" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
 
 /* =========================================================
    3. ALMACENAMIENTO (localStorage)
    ========================================================= */
-const KEY = "stat-fichas";
-let memory = [];
-const store = {
-  read() {
-    try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v).map(migrate) : memory; }
-    catch (e) { return memory; }
-  },
-  write(list) {
-    memory = list;
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* sin espacio o bloqueado */ }
-  }
+const mem = {};
+const LS = {
+  read(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return mem[k] ?? null; } },
+  write(k, v) { mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bloqueado o sin espacio */ } }
 };
+const saveSystems = () => LS.write("stat-systems", userSystems);
+const saveFichas = () => LS.write("stat-fichas", fichas);
+
+userSystems = (Array.isArray(LS.read("stat-systems")) ? LS.read("stat-systems") : []).map(cleanSystem).filter(s => !s.id.startsWith("b-"));
+let fichas = (Array.isArray(LS.read("stat-fichas")) ? LS.read("stat-fichas") : []).map(migrate);
+if (fichas.map(ensureSystem).some(Boolean)) saveSystems();
 
 /* =========================================================
    4. INTERFAZ
    ========================================================= */
 const $ = id => document.getElementById(id);
 let state = newFicha();
-let fichas = store.read();
 let toastTimer;
 
 function say(m) {
   const t = $("toast"); t.textContent = m; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
 }
 function livePal() {
   const s = getComputedStyle(document.documentElement), g = v => s.getPropertyValue(v).trim();
   return { ink: g("--text"), mute: g("--muted"), line: g("--border") };
 }
 function draw() {
-  $("chart").innerHTML = fichaToSvg(state, livePal());
-  $("viewInfo").textContent = `Radar · ${state.n} stats · 0–${state.max}`;
+  $("card").innerHTML = svgDoc(state, livePal());
+  $("viewInfo").textContent = `${VIEWS[state.view]} · ${state.n} stats · 0–${state.max}`;
+}
+const slug = s => (s || "ficha").toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-").replace(/^-|-$/g, "") || "ficha";
+
+function saveFile(filename, blob) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* --- navegación entre paneles --- */
+/* --- navegación --- */
 function openPanel(name) {
+  const cmpOn = name === "compare";
+  $("compareScreen").hidden = !cmpOn;
+  document.querySelector(".workspace").hidden = cmpOn;
   document.querySelectorAll("[data-panel]").forEach(p => p.classList.toggle("active", p.dataset.panel === name));
   document.querySelectorAll("[data-nav]").forEach(b => b.classList.toggle("active", b.dataset.nav === name));
+  if (cmpOn) renderCompare();
 }
 document.querySelectorAll("[data-nav]").forEach(b => { b.onclick = () => openPanel(b.dataset.nav); });
 
@@ -463,15 +708,15 @@ $("addStat").onclick = () => {
   state.n++; renderStats(); draw();
 };
 
-/* --- interruptores de "Mostrar" --- */
-const SWITCHES = { "sw-name": "showNames", "sw-value": "showValue", "sw-rank": "letters" };
+/* --- interruptores y vista --- */
+const SWITCHES = { "sw-name": "showNames", "sw-value": "showValue", "sw-rank": "showRank", "sw-circle": "circle" };
 function syncSwitches() {
-  for (const [id, k] of Object.entries(SWITCHES)) {
-    $(id).classList.toggle("active", !!state[k]);
-    $(id).setAttribute("aria-checked", !!state[k]);
-  }
+  for (const [id, k] of Object.entries(SWITCHES)) { $(id).classList.toggle("active", !!state[k]); $(id).setAttribute("aria-checked", !!state[k]); }
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
+  $("circleRow").hidden = state.view !== "radar";
 }
 for (const [id, k] of Object.entries(SWITCHES)) $(id).onclick = () => { state[k] = !state[k]; syncSwitches(); draw(); };
+document.querySelectorAll("[data-view]").forEach(b => { b.onclick = () => { state.view = b.dataset.view; syncSwitches(); draw(); }; });
 
 /* --- identidad, escala y color --- */
 $("cname").oninput = e => { state.name = e.target.value; draw(); };
@@ -481,65 +726,76 @@ $("max").onchange = e => {
   const M = clamp(Math.round(+e.target.value) || 10, 3, MAX_SCALE);
   state.max = M; e.target.value = M;
   state.stats = state.stats.map(v => Math.min(v, M));
-  state.th = autoTh(M);
-  renderStats(); renderLetters(); renderCustom(); draw();
+  renderStats(); renderSystem(); draw();
 };
 
-/* --- rangos --- */
-function setMode() {
-  const c = state.rankMode === "custom";
-  $("panel-letters").hidden = c; $("panel-custom").hidden = !c;
-  $("mode-letters").classList.toggle("active", !c); $("mode-custom").classList.toggle("active", c);
-}
-$("mode-letters").onclick = () => { state.rankMode = "letters"; setMode(); draw(); };
-$("mode-custom").onclick = () => { state.rankMode = "custom"; setMode(); draw(); };
+/* --- sistemas de rangos --- */
+const curSystem = () => getSystem(state.system) || BUILTIN[0];
+const sysTop = s => (s.mode === "percent" ? 100 : MAX_SCALE);
 
-function renderLetters() {
-  const box = $("letterRows"); box.innerHTML = "";
-  RANKS.forEach((r, k) => {
-    const d = document.createElement("div"); d.className = "range-row";
-    d.innerHTML = `<div class="range-label">${r}</div><input type="number" min="0" max="${state.max}" value="${state.th[k]}" ${k === 0 ? "disabled" : ""} aria-label="Valor mínimo de ${r}"><span></span>`;
-    const inp = d.querySelector("input");
-    inp.onchange = () => {
-      const v = clamp(Math.round(+inp.value) || 0, 0, state.max);
-      state.th[k] = v;
-      for (let j = k + 1; j < RANKS.length; j++) if (state.th[j] < v) state.th[j] = v;
-      for (let j = k - 1; j > 0; j--) if (state.th[j] > v) state.th[j] = v;
-      renderLetters(); draw();
-    };
-    box.appendChild(d);
-  });
-}
-$("auto").onclick = () => { state.th = autoTh(state.max); renderLetters(); draw(); };
+function renderSystem() {
+  if (!getSystem(state.system)) state.system = "b-letters";
+  const s = curSystem(), locked = !!s.builtin, sel = $("sysSelect");
+  sel.innerHTML = "";
+  const g1 = document.createElement("optgroup"); g1.label = "Incluidos";
+  BUILTIN.forEach(x => g1.appendChild(new Option(x.name, x.id))); sel.appendChild(g1);
+  if (userSystems.length) {
+    const g2 = document.createElement("optgroup"); g2.label = "Mis sistemas";
+    userSystems.forEach(x => g2.appendChild(new Option(x.name, x.id))); sel.appendChild(g2);
+  }
+  sel.value = s.id;
+  $("sysName").value = s.name; $("sysName").disabled = locked;
+  $("sysMode").value = s.mode; $("sysMode").disabled = locked;
+  $("sysDel").disabled = locked; $("sysAdd").hidden = locked; $("sysLock").hidden = !locked;
+  $("sysHead").firstElementChild.textContent = s.mode === "percent" ? "Desde (%)" : "Desde (valor)";
 
-function renderCustom() {
-  const box = $("customRows"); box.innerHTML = "";
-  state.custom.forEach((r, k) => {
+  const hint = $("sysHint");
+  if (s.suggestMax && state.max !== s.suggestMax) {
+    hint.hidden = false;
+    hint.innerHTML = `<span>Pensado para escala 0–${s.suggestMax}.</span><button class="btn sm" id="fixMax">Ajustar escala</button>`;
+    $("fixMax").onclick = () => { state.max = s.suggestMax; state.stats = state.stats.map(v => Math.min(v, state.max)); $("max").value = state.max; renderStats(); renderSystem(); draw(); };
+  } else hint.hidden = true;
+
+  const box = $("sysRows"); box.innerHTML = "";
+  s.rows.forEach((r, k) => {
     const d = document.createElement("div"); d.className = "range-row custom";
-    d.innerHTML = `<input type="number" min="0" max="${state.max}" value="${r.min}" ${k === 0 ? "disabled" : ""} aria-label="Desde"><input type="text" maxlength="6" value="${esc(r.label)}" aria-label="Etiqueta">${k === 0 ? "<span></span>" : '<button class="icon" title="Quitar fila">×</button>'}`;
+    d.innerHTML = `<input type="number" min="0" max="${sysTop(s)}" value="${r.min}" ${locked || k === 0 ? "disabled" : ""} aria-label="Desde"><input type="text" maxlength="6" value="${esc(r.label)}" ${locked ? "disabled" : ""} aria-label="Etiqueta">${locked || k === 0 ? "<span></span>" : '<button class="icon" title="Quitar fila">×</button>'}`;
     const [mi, la, x] = d.children;
-    mi.onchange = () => { r.min = clamp(Math.round(+mi.value) || 1, 1, state.max); state.custom.sort((a, b) => a.min - b.min); renderCustom(); draw(); };
-    la.oninput = () => { r.label = la.value; draw(); };
-    if (k > 0) x.onclick = () => { state.custom.splice(k, 1); renderCustom(); draw(); };
+    mi.onchange = () => { r.min = clamp(Math.round(+mi.value) || 1, 1, sysTop(s)); s.rows.sort((a, b) => a.min - b.min); saveSystems(); renderSystem(); draw(); };
+    la.oninput = () => { r.label = la.value; saveSystems(); draw(); };
+    if (!locked && k > 0) x.onclick = () => { s.rows.splice(k, 1); saveSystems(); renderSystem(); draw(); };
     box.appendChild(d);
   });
 }
-$("cadd").onclick = () => {
-  if (state.custom.length >= 50) return;
-  const last = state.custom[state.custom.length - 1];
-  state.custom.push({ min: Math.min(state.max, last.min + Math.max(1, Math.round(state.max / 10))), label: "" });
-  renderCustom(); draw();
+$("sysSelect").onchange = e => { state.system = e.target.value; state.systemSnap = null; renderSystem(); draw(); };
+$("sysName").oninput = e => { const s = curSystem(); if (s.builtin) return; s.name = e.target.value.slice(0, 24); saveSystems(); $("sysSelect").selectedOptions[0].textContent = s.name; };
+$("sysMode").onchange = e => {
+  const s = curSystem(); if (s.builtin) return;
+  s.mode = e.target.value; s.rows.forEach(r => { r.min = Math.min(r.min, sysTop(s)); });
+  saveSystems(); renderSystem(); draw();
 };
-// Plantilla D&D: modificador = floor((valor - 10) / 2), de -5 (valor 0) a +10 (valor 30).
-$("cdnd").onclick = () => {
-  if (!confirm("Esto reemplaza nombres, valores, escala y rangos de la ficha actual. ¿Continuar?")) return;
-  state.n = 6; state.max = 30;
-  ["Fuerza","Destreza","Constitución","Inteligencia","Sabiduría","Carisma"].forEach((n, i) => { state.names[i] = n; });
-  [15, 14, 13, 12, 10, 8].forEach((v, i) => { state.stats[i] = v; });
-  state.custom = [...Array(16)].map((_, i) => { const m = i - 5; return { min: i * 2, label: (m >= 0 ? "+" : "") + m }; });
-  state.th = autoTh(30);
-  state.rankMode = "custom"; state.showValue = true; state.letters = true;
-  syncAll(); say("Plantilla D&D aplicada.");
+$("sysAdd").onclick = () => {
+  const s = curSystem(); if (s.builtin || s.rows.length >= 50) return;
+  const last = s.rows[s.rows.length - 1];
+  s.rows.push({ min: Math.min(sysTop(s), last.min + (s.mode === "percent" ? 10 : Math.max(1, Math.round(state.max / 10)))), label: "" });
+  saveSystems(); renderSystem(); draw();
+};
+function addSystem(base) {
+  const s = cleanSystem(base); s.id = rid("u-");
+  userSystems.push(s); saveSystems();
+  state.system = s.id; state.systemSnap = null;
+  renderSystem(); draw(); return s;
+}
+$("sysNew").onclick = () => { addSystem({ name: "Mi sistema", mode: "percent", rows: [{ min: 0, label: "E" }, { min: 40, label: "C" }, { min: 70, label: "B" }, { min: 90, label: "A" }] }); say("Sistema creado. Edita sus filas abajo."); };
+$("sysDup").onclick = () => { const b = clone(curSystem()); addSystem({ ...b, name: (b.name + " (copia)").slice(0, 24) }); say("Sistema duplicado."); };
+$("sysDel").onclick = () => {
+  const s = curSystem(); if (s.builtin) return;
+  if (!confirm(`¿Borrar el sistema «${s.name}»? Las fichas que lo usan pasarán a «Letras E–S+».`)) return;
+  userSystems = userSystems.filter(x => x.id !== s.id); saveSystems();
+  fichas.forEach(f => { if (f.system === s.id) { f.system = "b-letters"; f.systemSnap = null; } });
+  saveFichas();
+  if (state.system === s.id) { state.system = "b-letters"; state.systemSnap = null; }
+  renderSystem(); renderLibrary(); draw(); say("Sistema borrado.");
 };
 
 /* --- biblioteca --- */
@@ -549,63 +805,147 @@ function renderLibrary() {
   box.innerHTML = "";
   fichas.forEach(f => {
     const d = document.createElement("div"); d.className = "library-card" + (f.id === state.id ? " current" : "");
-    d.innerHTML = `<strong><span class="swatch" style="background:${esc(f.color)}"></span>${esc(f.name || "Sin nombre")}</strong><small>${f.n} estadísticas${f.subtitle ? " · " + esc(f.subtitle) : ""}</small><div class="library-actions"><button class="btn sm">Abrir</button><button class="btn sm danger">Borrar</button></div>`;
-    const [open, del] = d.querySelectorAll("button");
+    d.innerHTML = `<strong><span class="swatch" style="background:${esc(f.color)}"></span>${esc(f.name || "Sin nombre")}</strong><small>${f.n} estadísticas · ${VIEWS[f.view]}${f.subtitle ? " · " + esc(f.subtitle) : ""}</small><div class="library-actions"><button class="btn sm">Abrir</button><button class="btn sm">Duplicar</button><button class="btn sm">Exportar</button><button class="btn sm danger">Borrar</button></div>`;
+    const [open, dup, exp, del] = d.querySelectorAll("button");
     open.onclick = () => { state = migrate(f); syncAll(); openPanel("config"); say("Ficha abierta."); };
+    dup.onclick = () => duplicate(f);
+    exp.onclick = () => exportList([f], slug(f.name) + ".json");
     del.onclick = () => deleteFicha(f.id);
     box.appendChild(d);
   });
 }
+function duplicate(f) {
+  const c = finalize(migrate(f));
+  c.id = rid("f"); c.name = (c.name.slice(0, 28) + " (copia)"); c.updated = Date.now();
+  fichas = [c, ...fichas]; saveFichas(); renderLibrary(); say("Ficha duplicada.");
+}
 function deleteFicha(id) {
   if (!confirm("¿Borrar esta ficha?")) return;
-  fichas = fichas.filter(x => x.id !== id);
-  store.write(fichas);
+  fichas = fichas.filter(x => x.id !== id); saveFichas();
   if (state.id === id) { state = newFicha(); syncAll(); } else renderLibrary();
   say("Ficha borrada.");
 }
 
-/* --- acciones --- */
-function saveFile(filename, blob) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+/* --- exportar / importar JSON --- */
+function exportList(list, filename) {
+  const data = { format: "stat-generator", version: VERSION, exported: new Date().toISOString(), fichas: list.map(x => finalize(migrate(x))) };
+  saveFile(filename, new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  say(list.length === 1 ? "Ficha exportada." : `${list.length} fichas exportadas.`);
 }
-async function downloadPng() {
-  const name = (state.name || "ficha").toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-").replace(/^-|-$/g, "") || "ficha";
-  const svg = fichaToFile(state);
+$("exportAll").onclick = () => fichas.length ? exportList(fichas, "stat-generator-fichas.json") : say("No hay fichas guardadas para exportar.");
+$("exportCur").onclick = () => exportList([state], slug(state.name) + ".json");
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = e => { const file = e.target.files[0]; e.target.value = ""; if (file) importFile(file); };
+
+function importFile(file) {
+  if (file.size > 2e6) { say("El archivo es demasiado grande (máximo 2 MB)."); return; }
+  const reader = new FileReader();
+  reader.onerror = () => say("No se pudo leer el archivo.");
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); } catch (err) { say("El archivo no es un JSON válido."); return; }
+    const list = (Array.isArray(data) ? data : data && Array.isArray(data.fichas) ? data.fichas : data && typeof data === "object" ? [data] : [])
+      .slice(0, 200).filter(x => x && typeof x === "object");
+    if (!list.length) { say("El archivo no contiene fichas."); return; }
+    const items = list.map(migrate), taken = new Set(fichas.map(x => x.id));
+    const dups = items.filter(x => x.id && taken.has(x.id)).length;
+    const msg = `Se importarán ${items.length} ficha${items.length > 1 ? "s" : ""}` + (dups ? `; ${dups} ya existía${dups > 1 ? "n" : ""} y se guardará${dups > 1 ? "n" : ""} como copia` : "") + ". ¿Continuar?";
+    if (!confirm(msg)) return;
+    let newSys = false;
+    items.forEach(it => {
+      if (!it.id || taken.has(it.id)) { if (it.id) it.name = it.name.slice(0, 28) + " (copia)"; it.id = rid("f"); }
+      taken.add(it.id); it.updated = Date.now();
+      newSys = ensureSystem(it) || newSys;
+    });
+    fichas = [...items, ...fichas]; saveFichas(); if (newSys) saveSystems();
+    renderLibrary(); renderSystem(); say(`${items.length} ficha${items.length > 1 ? "s importadas" : " importada"}.`);
+  };
+  reader.readAsText(file);
+}
+
+/* --- exportar imagen (PNG / SVG) y CSV --- */
+const onCompare = () => !$("compareScreen").hidden;
+function currentFile() {
+  if (onCompare()) {
+    const A = resolve(cmp.a), B = resolve(cmp.b);
+    if (!A || !B) { say("Elige dos personajes para comparar."); return null; }
+    return { file: compareFile(A, B), name: slug(A.name) + "-vs-" + slug(B.name) };
+  }
+  return { file: fichaToFile(state), name: slug(state.name) };
+}
+async function exportPng() {
+  const cur = currentFile(); if (!cur) return;
+  const { svg, w, h } = cur.file;
   try {
     const img = new Image();
     await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
-    const cv = document.createElement("canvas"); cv.width = G.W * 2; cv.height = G.H * 2;
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
     cv.getContext("2d").drawImage(img, 0, 0);
     const blob = await new Promise(r => cv.toBlob(r, "image/png"));
     if (!blob) throw new Error("png");
-    saveFile(name + ".png", blob); say("Imagen descargada.");
+    saveFile(cur.name + ".png", blob); say("Imagen PNG descargada.");
   } catch (e) {
-    saveFile(name + ".svg", new Blob([svg], { type: "image/svg+xml" }));
-    say("No se pudo generar PNG; se descargó SVG.");
+    saveFile(cur.name + ".svg", new Blob([svg], { type: "image/svg+xml" }));
+    say("No se pudo generar el PNG; se descargó SVG.");
   }
 }
+function exportSvg() {
+  const cur = currentFile(); if (!cur) return;
+  saveFile(cur.name + ".svg", new Blob([cur.file.svg], { type: "image/svg+xml" })); say("SVG descargado.");
+}
+function exportCsv() {
+  saveFile(slug(state.name) + ".csv", new Blob([toCsv(state)], { type: "text/csv;charset=utf-8" })); say("CSV descargado.");
+}
+$("expSvg").onclick = exportSvg; $("cmpSvg").onclick = exportSvg; $("expCsv").onclick = exportCsv;
+
+/* --- comparar --- */
+const cmp = { a: null, b: null };
+const resolve = id => (id === "__current" ? state : fichas.find(f => f.id === id) || null);
+function renderCompare() {
+  const cands = [...fichas.map(f => ({ id: f.id, label: f.name || "Sin nombre" })), { id: "__current", label: "Ficha actual (editor)" }];
+  if (!cands.some(c => c.id === cmp.a)) cmp.a = cands[0].id;
+  if (!cands.some(c => c.id === cmp.b) || (cmp.b === cmp.a && cands.length > 1)) cmp.b = (cands.find(c => c.id !== cmp.a) || {}).id || null;
+  for (const [sel, key] of [[$("cmpA"), "a"], [$("cmpB"), "b"]]) {
+    sel.innerHTML = "";
+    cands.forEach(c => sel.appendChild(new Option(c.label, c.id)));
+    if (cmp[key]) sel.value = cmp[key];
+  }
+  drawCompare();
+}
+function drawCompare() {
+  const A = resolve(cmp.a), B = resolve(cmp.b), note = $("cmpNote");
+  if (!A || !B || cmp.a === cmp.b) {
+    $("cmpCard").innerHTML = '<div class="empty">Necesitas dos personajes distintos para comparar. Guarda fichas en la Biblioteca o usa la ficha actual del editor.</div>';
+    note.textContent = ""; return;
+  }
+  $("cmpCard").innerHTML = compareDoc(A, B, livePal());
+  note.textContent = "Los personajes se alinean por el nombre de sus estadísticas. Si una existe solo en uno, el otro cuenta como 0.";
+}
+$("cmpA").onchange = e => { cmp.a = e.target.value; drawCompare(); };
+$("cmpB").onchange = e => { cmp.b = e.target.value; drawCompare(); };
+$("cmpSwap").onclick = () => { [cmp.a, cmp.b] = [cmp.b, cmp.a]; renderCompare(); };
+
+/* --- acciones generales --- */
 const ACTS = {
   rand() { state.stats = state.stats.map(() => Math.floor(Math.random() * (state.max + 1))); renderStats(); draw(); },
   reset() { state.stats = state.stats.map(() => Math.ceil(state.max / 2)); renderStats(); draw(); },
   new() { state = newFicha(); syncAll(); openPanel("config"); say("Ficha nueva."); },
   save() {
-    state.id = state.id || "f" + Date.now().toString(36);
-    const data = { ...JSON.parse(JSON.stringify(state)), updated: Date.now() };
+    state.id = state.id || rid("f"); state.updated = Date.now();
+    const data = finalize(clone(state));
     fichas = [data, ...fichas.filter(x => x.id !== state.id)];
-    store.write(fichas); renderLibrary(); say("Ficha guardada.");
+    saveFichas(); renderLibrary(); say("Ficha guardada.");
   },
-  dl: downloadPng
+  dl: exportPng
 };
 document.querySelectorAll("[data-act]").forEach(b => { b.onclick = ACTS[b.dataset.act]; });
 
 /* --- inicio --- */
 function syncAll() {
+  ensureSystem(state);
   $("cname").value = state.name; $("subtitle").value = state.subtitle;
   $("max").value = state.max; $("color").value = state.color;
-  syncSwitches(); renderStats(); renderLetters(); renderCustom(); setMode(); renderLibrary(); draw();
+  syncSwitches(); renderStats(); renderSystem(); renderLibrary(); draw();
 }
 syncAll();
 
