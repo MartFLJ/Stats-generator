@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
-:root{--bg:#f3f3f0;--panel:#fff;--soft:#f8f8f5;--hover:#eeeeea;--text:#171717;--muted:#777;--border:#e4e4df;--primary:#171717;--on-primary:#fff;--danger:#b33;--radius:16px;box-sizing:border-box}
-@media (prefers-color-scheme:dark){:root{--bg:#141316;--panel:#1e1c21;--soft:#19171b;--hover:#2a272f;--text:#f1eef5;--muted:#9a95a3;--border:#34303a;--primary:#f1eef5;--on-primary:#171717;--danger:#ff7b7b}}
+:root{--bg:#f3f3f0;--panel:#fff;--soft:#f8f8f5;--hover:#eeeeea;--text:#171717;--muted:#777;--border:#e4e4df;--primary:#171717;--on-primary:#fff;--danger:#b33;--warn:#c47a00;--radius:16px;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#141316;--panel:#1e1c21;--soft:#19171b;--hover:#2a272f;--text:#f1eef5;--muted:#9a95a3;--border:#34303a;--primary:#f1eef5;--on-primary:#171717;--danger:#ff7b7b;--warn:#ffb84d}}
 *{box-sizing:border-box}
 html{scroll-padding-top:calc(68px + env(safe-area-inset-top,0px))}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
@@ -60,16 +60,16 @@ input,select{width:100%;border:1px solid var(--border);background:var(--soft);co
 input:focus{border-color:var(--muted)}
 input:disabled{opacity:.6}
 input[type=range]{padding:0;border:0;background:none;accent-color:var(--primary)}
-.color-input{height:40px;padding:3px}
+.color-input{height:40px}
 .section{border-top:1px solid var(--border);margin-top:20px;padding-top:20px}
 .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:13px}
 .row2{display:flex;gap:7px}.row2 .btn{flex:1}
 
 /* stats */
 .stat-editor{display:flex;flex-direction:column;gap:12px}
-.stat-row{display:grid;grid-template-columns:1fr 78px 30px;gap:6px;align-items:center}
+.stat-row{display:grid;grid-template-columns:1fr 62px 30px 30px 30px;gap:5px;align-items:center}
 .stat-row .slider{grid-column:1/-1;height:18px}
-.icon{width:30px;height:30px;border:0;background:var(--hover);border-radius:7px;cursor:pointer}
+.icon{width:30px;height:30px;font-size:12px;border:0;background:var(--hover);border-radius:7px;cursor:pointer}
 .icon:disabled{opacity:.35;cursor:not-allowed}
 .add-stat,.add-range{width:100%;border:1px dashed var(--border);background:transparent;padding:10px;border-radius:9px;cursor:pointer;margin-top:8px;color:var(--muted);font-size:13px}
 .add-stat:hover,.add-range:hover{background:var(--hover)}
@@ -148,6 +148,33 @@ select{cursor:pointer}
 @media (max-width:950px){.compare{padding:16px}}
 @media (max-width:550px){.compare{padding:12px}.compare-bar{grid-template-columns:1fr 1fr}.compare-bar .btn{grid-column:1/-1;order:3;height:34px}}
 
+/* selector de color con esquinas redondeadas */
+input[type=color]{-webkit-appearance:none;appearance:none;padding:4px;border-radius:9px;overflow:hidden;cursor:pointer}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:0;border-radius:6px}
+input[type=color]::-moz-color-swatch{border:0;border-radius:6px}
+
+/* aviso de cambios sin guardar */
+.dirty{font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:var(--warn);margin-left:10px;white-space:nowrap}
+
+/* importar: arrastrar y pegar */
+.dropzone{border:1.5px dashed var(--border);border-radius:10px;padding:16px 12px;text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px;transition:.15s}
+.dropzone.over{border-color:var(--primary);background:var(--hover);color:var(--text)}
+textarea{width:100%;border:1px solid var(--border);background:var(--soft);color:var(--text);border-radius:9px;padding:10px 11px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;resize:vertical;margin:10px 0;outline:none}
+#backup{margin-top:12px}
+#backup.muted{margin-top:12px}
+
+/* comparar: separar el selector de vista del gráfico */
+#cmpViews{margin:16px 0 24px}
+.cmp-export{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp-export .form-group{margin-bottom:0}
+@media (max-width:550px){.cmp-export{grid-template-columns:1fr}}
+
+/* fila de estadística: tipo de valor */
+.stat-sub{grid-column:1/-1;display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center}
+.stat-sub select{padding:6px 8px;font-size:12px}
+.stat-sub input[type=range]:disabled,.stat-row input[type=number]:disabled{opacity:.35}
+
 </style>
 </head>
 <body>
@@ -162,17 +189,17 @@ select{cursor:pointer}
       <button data-nav="ranges">≡ Rangos</button>
       <button data-nav="compare">⇄ Comparar</button>
     </nav>
-    <div class="sidebar-bottom">v5 · fases 7–8</div>
+    <div class="sidebar-bottom">v7</div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div class="page-title">Stat Generator</div>
+      <div class="page-title">Stat Generator <span id="dirty" class="dirty" hidden>● Sin guardar</span></div>
       <div class="top-actions">
         <button class="btn hide-sm" data-act="rand" title="Valores aleatorios">Aleatorio</button>
         <button class="btn" data-act="dl" title="Descargar imagen">⬇<span class="hide-sm"> PNG</span></button>
         <button class="btn" data-act="save">Guardar</button>
-        <button class="btn primary" data-act="new">+<span class="hide-sm"> Nueva</span></button>
+        <button class="btn" data-act="new">+<span class="hide-sm"> Nueva</span></button>
       </div>
     </header>
 
@@ -193,12 +220,19 @@ select{cursor:pointer}
           <div class="library-list" id="libraryList"></div>
           <div class="section">
             <div class="section-title">Importar / Exportar (JSON)</div>
+            <div class="dropzone" id="dropzone">Arrastra aquí un archivo .json para cargarlo</div>
             <div class="row2 wrap">
-              <button class="btn" id="importBtn">Importar JSON</button>
+              <button class="btn" id="importBtn">Importar archivo</button>
+              <button class="btn" id="pasteBtn">Pegar JSON</button>
               <button class="btn" id="exportAll">Exportar todas</button>
               <button class="btn" id="exportCur">Exportar ficha actual</button>
             </div>
             <input type="file" id="importFile" accept=".json,application/json" hidden>
+            <div id="pasteBox" hidden>
+              <textarea id="pasteText" rows="6" placeholder="Pega aquí el contenido del JSON" spellcheck="false"></textarea>
+              <div class="row2"><button class="btn primary" id="pasteLoad">Cargar</button><button class="btn" id="pasteCancel">Cancelar</button></div>
+            </div>
+            <div id="backup"></div>
             <p class="muted">Las fichas importadas nunca pisan las tuyas: si ya existe una igual, se guarda como copia.</p>
           </div>
         </div>
@@ -209,6 +243,7 @@ select{cursor:pointer}
           <div class="panel-description">Define el contenido de tu ficha.</div>
           <div class="form-group"><label for="cname">Nombre</label><input type="text" id="cname" maxlength="36"></div>
           <div class="form-group"><label for="subtitle">Subtítulo</label><input type="text" id="subtitle" maxlength="40" placeholder="Opcional"></div>
+          <div class="form-group"><label for="note">Nota bajo el gráfico</label><input type="text" id="note" maxlength="120" placeholder="Opcional · hasta 2 líneas"></div>
           <div class="form-group"><label for="max">Escala: valor máximo (3 a 1000)</label><input type="number" id="max" min="3" max="1000"></div>
           <div class="section">
             <div class="section-title">Estadísticas</div>
@@ -232,7 +267,17 @@ select{cursor:pointer}
             <button class="view-option" data-view="bars">Barras</button>
             <button class="view-option" data-view="table">Tabla</button>
           </div>
-          <div class="option" id="circleRow" style="margin-top:14px"><span>Marco circular</span><button class="switch" id="sw-circle" role="switch"><span class="switch-dot"></span></button></div>
+          <div id="radarOpts">
+            <div class="section">
+              <div class="section-title">Marco del radar</div>
+              <div class="view-options">
+                <button class="view-option" data-frame="circle">Círculo</button>
+                <button class="view-option" data-frame="polygon">Polígono</button>
+                <button class="view-option" data-frame="none">Ninguno</button>
+              </div>
+              <div class="form-group" style="margin:18px 0 0"><label for="fillOp">Opacidad del relleno: <span id="fillOpVal">50</span>%</label><input type="range" id="fillOp" min="0" max="100" step="5"></div>
+            </div>
+          </div>
           <div class="section">
             <div class="section-title">Mostrar</div>
             <div class="option"><span>Nombre</span><button class="switch" id="sw-name" role="switch"><span class="switch-dot"></span></button></div>
@@ -245,12 +290,17 @@ select{cursor:pointer}
           </div>
           <div class="section">
             <div class="section-title">Exportar ficha</div>
-            <div class="row2">
+            <div class="form-group"><label>Fondo de la imagen</label>
+              <select data-exp="bg"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="transparent">Transparente</option></select></div>
+            <div class="form-group" data-exp-row="text" hidden><label>Color del texto</label>
+              <select data-exp="text"><option value="dark">Oscuro (para fondos claros)</option><option value="light">Claro (para fondos oscuros)</option></select></div>
+            <div class="row2 wrap">
               <button class="btn" data-act="dl">PNG</button>
               <button class="btn" id="expSvg">SVG</button>
               <button class="btn" id="expCsv">CSV</button>
+              <button class="btn" data-act="copy">Copiar imagen</button>
             </div>
-            <p class="muted">PNG y SVG son la imagen de la ficha (el SVG se puede ampliar sin perder calidad). CSV es la tabla de datos, para Excel o Sheets.</p>
+            <p class="muted">PNG y SVG son la imagen de la ficha (el SVG se puede ampliar sin perder calidad). «Copiar imagen» la deja lista para pegar en un chat. CSV es la tabla de datos.</p>
           </div>
         </div>
 
@@ -285,10 +335,22 @@ select{cursor:pointer}
         <button class="btn" id="cmpSwap" title="Intercambiar" aria-label="Intercambiar">⇄</button>
         <div class="form-group"><label for="cmpB">Personaje 2</label><select id="cmpB"></select></div>
       </div>
+      <div class="view-options" id="cmpViews">
+        <button class="view-option" data-cview="radar">Radar</button>
+        <button class="view-option" data-cview="bars">Barras</button>
+        <button class="view-option" data-cview="table">Tabla</button>
+      </div>
       <div class="stat-card" id="cmpCard"></div>
-      <div class="row2 cmp-actions">
+      <div class="cmp-export">
+        <div class="form-group"><label>Fondo de la imagen</label>
+          <select data-exp="bg"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="transparent">Transparente</option></select></div>
+        <div class="form-group" data-exp-row="text" hidden><label>Color del texto</label>
+          <select data-exp="text"><option value="dark">Oscuro (para fondos claros)</option><option value="light">Claro (para fondos oscuros)</option></select></div>
+      </div>
+      <div class="row2 cmp-actions wrap">
         <button class="btn" data-act="dl">Descargar PNG</button>
         <button class="btn" id="cmpSvg">Descargar SVG</button>
+        <button class="btn" data-act="copy">Copiar imagen</button>
       </div>
       <p class="muted" id="cmpNote"></p>
     </section>
@@ -357,9 +419,10 @@ function labelOf(f, v) {
 /* ---------- la ficha ---------- */
 const newFicha = () => ({
   v: VERSION, id: null, updated: 0,
-  name: "Nuevo personaje", subtitle: "",
+  name: "Nuevo personaje", subtitle: "", note: "",
   n: 6, names: [...DEF_NAMES], max: 10, stats: [10,8,6,8,4,10,6,8,4,6],
-  view: "radar", circle: true,
+  special: Array(10).fill(""),         // "" = número, "?" = desconocido, "inf" = infinito
+  view: "radar", frame: "circle", fillOpacity: 50,
   system: "b-letters", systemSnap: null,
   showNames: true, showValue: false, showRank: true,
   color: "#e0457b"
@@ -382,6 +445,7 @@ function migrate(raw) {
   f.updated = Number(raw.updated) || 0;
   f.name = String(raw.name ?? f.name).slice(0, 40);
   f.subtitle = String(raw.subtitle ?? "").slice(0, 40);
+  f.note = String(raw.note ?? "").slice(0, 120);
   f.max = max;
   f.n = clamp(Math.round(+n) || 6, 3, 10);
   f.names = DEF_NAMES.map((d, i) => String(Array.isArray(names) && names[i] != null ? names[i] : d).slice(0, 14));
@@ -409,7 +473,9 @@ function migrate(raw) {
   f.system = system; f.systemSnap = snap;
 
   f.view = VIEWS[raw.view] ? raw.view : "radar";
-  f.circle = raw.circle !== false;
+  f.frame = ["circle", "polygon", "none"].includes(raw.frame) ? raw.frame : raw.circle === false ? "none" : "circle";
+  f.fillOpacity = raw.fillOpacity == null ? 50 : clamp(Math.round(+raw.fillOpacity) || 0, 0, 100);
+  f.special = DEF_NAMES.map((_, i) => (["?", "inf"].includes(raw.special && raw.special[i]) ? raw.special[i] : ""));
   f.showNames = raw.showNames !== false;
   f.showValue = !!raw.showValue;
   f.showRank = (raw.showRank ?? raw.letters) !== false;
@@ -433,7 +499,20 @@ function finalize(f) {
    2. DIBUJO: ficha -> SVG (Radar, Barras, Tabla)
    ========================================================= */
 const W = 640;
-const EXPORT_PAL = { bg: "#f6f4ef", ink: "#1d1b20", mute: "#77737d", line: "#d6d1c6" };
+const PAL_LIGHT = { bg: "#f6f4ef", ink: "#1d1b20", mute: "#77737d", line: "#d6d1c6" };
+const PAL_DARK = { bg: "#17151a", ink: "#f1eef5", mute: "#9a95a3", line: "#3a3641" };
+const EXPORT_PAL = PAL_LIGHT;
+// Estilo de exportación: fondo claro, oscuro o transparente (con texto oscuro o claro).
+function exportStyle(o) {
+  o = o || {};
+  if (o.bg === "dark") return { P: PAL_DARK, bg: PAL_DARK.bg };
+  if (o.bg === "transparent") return { P: o.text === "light" ? PAL_DARK : PAL_LIGHT, bg: null };
+  return { P: PAL_LIGHT, bg: PAL_LIGHT.bg };
+}
+const SYM = { "?": "?", inf: "∞" };
+const statText = (f, i) => (f.special[i] ? SYM[f.special[i]] : String(f.stats[i]));
+const statLabel = (f, i) => (f.special[i] ? SYM[f.special[i]] : labelOf(f, f.stats[i]));
+const statFrac = (f, i) => (f.special[i] ? 1 : f.stats[i] / f.max);
 const FONT = `font-family="'Trebuchet MS',Arial,sans-serif"`;
 const points = p => p.map(q => q.map(n => n.toFixed(1)).join(",")).join(" ");
 
@@ -451,9 +530,9 @@ function header(f, P) {
 }
 
 function radarBody(f, P) {
-  const N = f.n, M = f.max, cx = 320, cy = 300, circ = f.circle;
-  const R = circ ? 115 : 128, RC = 155;
-  const rankR = circ ? RC - 24 : R + 16, nameR = circ ? RC + 26 : R + 40;
+  const N = f.n, M = f.max, cx = 320, cy = 300, frame = f.frame, framed = frame !== "none";
+  const R = framed ? 115 : 128, RC = 155;
+  const rankR = framed ? RC - 24 : R + 16, nameR = framed ? RC + 26 : R + 40;
   const ang = i => -Math.PI / 2 + i * 2 * Math.PI / N;
   const pt = (i, r) => [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r];
   const ring = k => points([...Array(N)].map((_, i) => pt(i, R * k / M)));
@@ -463,19 +542,29 @@ function radarBody(f, P) {
   levels.push(M);
   levels.forEach(k => { h += `<polygon points="${ring(k)}" fill="none" stroke="${P.line}" stroke-width="1.2"/>`; });
   for (let i = 0; i < N; i++) { const [x, y] = pt(i, R); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${P.line}" stroke-width="1.2"/>`; }
-  if (circ) h += `<circle cx="${cx}" cy="${cy}" r="${RC}" fill="none" stroke="${P.ink}" stroke-width="3"/>`;
-  const data = [...Array(N)].map((_, i) => pt(i, R * f.stats[i] / M));
-  h += `<polygon points="${points(data)}" fill="${f.color}" fill-opacity=".5" stroke="${f.color}" stroke-width="3" stroke-linejoin="round"/>`;
-  data.forEach(([x, y]) => { h += `<circle cx="${x}" cy="${y}" r="4.5" fill="${f.color}"/>`; });
+  if (frame === "circle") h += `<circle cx="${cx}" cy="${cy}" r="${RC}" fill="none" stroke="${P.ink}" stroke-width="3"/>`;
+  if (frame === "polygon") h += `<polygon points="${points([...Array(N)].map((_, i) => pt(i, RC)))}" fill="none" stroke="${P.ink}" stroke-width="3" stroke-linejoin="round"/>`;
+
+  const data = [...Array(N)].map((_, i) => pt(i, R * statFrac(f, i)));
+  h += `<polygon points="${points(data)}" fill="${f.color}" fill-opacity="${(f.fillOpacity / 100).toFixed(2)}" stroke="none"/>`;
+  for (let i = 0; i < N; i++) {                                    // contorno: punteado si toca un "?"
+    const j = (i + 1) % N, dashed = f.special[i] === "?" || f.special[j] === "?";
+    h += `<line x1="${data[i][0].toFixed(1)}" y1="${data[i][1].toFixed(1)}" x2="${data[j][0].toFixed(1)}" y2="${data[j][1].toFixed(1)}" stroke="${f.color}" stroke-width="3" stroke-linecap="round"${dashed ? ' stroke-dasharray="7 6"' : ""}/>`;
+  }
+  data.forEach(([x, y], i) => {
+    const sp = f.special[i];
+    h += sp === "?" ? `<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="${f.color}" stroke-width="2.5" stroke-dasharray="3 3"/>`
+      : `<circle cx="${x}" cy="${y}" r="${sp ? 6 : 4.5}" fill="${f.color}"/>`;
+  });
   for (let i = 0; i < N; i++) {
-    if (circ) { const [a, b] = pt(i, RC - 9), [c, d] = pt(i, RC + 9); h += `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${P.ink}" stroke-width="3"/>`; }
-    if (f.showRank) { const [x, y] = pt(i, rankR); h += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="${circ ? 17 : 15}" font-weight="900" fill="${f.color}">${esc(labelOf(f, f.stats[i]))}</text>`; }
+    if (framed) { const [a, b] = pt(i, RC - 9), [c, d] = pt(i, RC + 9); h += `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${P.ink}" stroke-width="3"/>`; }
+    if (f.showRank) { const [x, y] = pt(i, rankR); h += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="${framed ? 17 : 15}" font-weight="900" fill="${f.color}">${esc(statLabel(f, i))}</text>`; }
     const co = Math.cos(ang(i)), two = f.showValue && f.showNames;
     const [x, y] = pt(i, nameR + (two ? 14 * Math.abs(Math.sin(ang(i))) : 0));
     const an = co > 0.3 ? "start" : co < -0.3 ? "end" : "middle";
     const both = f.showValue && f.showNames, dy = both ? -8 : 0;
     if (f.showNames) h += `<text x="${x}" y="${y + dy}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
-    if (f.showValue) h += `<text x="${x}" y="${y + (both ? 9 : 0)}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="${both ? 13 : 15}" font-weight="${both ? 400 : 700}" fill="${both ? P.mute : P.ink}">${f.stats[i]}</text>`;
+    if (f.showValue) h += `<text x="${x}" y="${y + (both ? 9 : 0)}" text-anchor="${an}" dominant-baseline="central" ${FONT} font-size="${both ? 13 : 15}" font-weight="${both ? 400 : 700}" fill="${both ? P.mute : P.ink}">${esc(statText(f, i))}</text>`;
   }
   return { inner: h, h: 530 };
 }
@@ -484,18 +573,19 @@ function barsBody(f, P) {
   const top = 124, rowH = 58, x0 = 44, x1 = 596;
   let h = "";
   for (let i = 0; i < f.n; i++) {
-    const y = top + i * rowH, v = f.stats[i];
+    const y = top + i * rowH, sp = f.special[i];
     let right = x1;
     if (f.showRank) {
-      const lab = labelOf(f, v), w = Math.max(30, lab.length * 11 + 16);
+      const lab = statLabel(f, i), w = Math.max(30, lab.length * 11 + 16);
       h += `<rect x="${right - w}" y="${y - 12}" width="${w}" height="24" rx="7" fill="${f.color}" fill-opacity=".18"/>`;
       h += `<text x="${right - w / 2}" y="${y}" text-anchor="middle" dominant-baseline="central" ${FONT} font-size="13" font-weight="900" fill="${f.color}">${esc(lab)}</text>`;
       right -= w + 10;
     }
-    if (f.showValue) h += `<text x="${right}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="17" font-weight="700" fill="${P.ink}">${v}</text>`;
+    if (f.showValue) h += `<text x="${right}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="17" font-weight="700" fill="${P.ink}">${esc(statText(f, i))}</text>`;
     if (f.showNames) h += `<text x="${x0}" y="${y}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(f.names[i])}</text>`;
     h += `<rect x="${x0}" y="${y + 16}" width="${x1 - x0}" height="10" rx="5" fill="${P.line}"/>`;
-    if (v > 0) h += `<rect x="${x0}" y="${y + 16}" width="${((x1 - x0) * v / f.max).toFixed(1)}" height="10" rx="5" fill="${f.color}"/>`;
+    if (sp === "?") h += `<rect x="${x0}" y="${y + 16}" width="${x1 - x0}" height="10" rx="5" fill="none" stroke="${f.color}" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+    else if (statFrac(f, i) > 0) h += `<rect x="${x0}" y="${y + 16}" width="${((x1 - x0) * statFrac(f, i)).toFixed(1)}" height="10" rx="5" fill="${f.color}"/>`;
   }
   return { inner: h, h: top + f.n * rowH + 6 };
 }
@@ -509,8 +599,8 @@ function tableBody(f, P) {
   for (let i = 0; i < f.n; i++) {
     const y = top + 42 + i * 40;
     h += `<text x="${x0}" y="${y}" dominant-baseline="central" ${FONT} font-size="15" font-weight="600" fill="${P.ink}">${esc(f.names[i])}</text>`;
-    if (f.showValue) h += `<text x="${vx}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" fill="${P.ink}">${f.stats[i]}</text>`;
-    if (f.showRank) h += `<text x="${x1}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" font-weight="900" fill="${f.color}">${esc(labelOf(f, f.stats[i]))}</text>`;
+    if (f.showValue) h += `<text x="${vx}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" fill="${P.ink}">${esc(statText(f, i))}</text>`;
+    if (f.showRank) h += `<text x="${x1}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="15" font-weight="900" fill="${f.color}">${esc(statLabel(f, i))}</text>`;
     h += `<line x1="${x0}" y1="${y + 20}" x2="${x1}" y2="${y + 20}" stroke="${P.line}" stroke-width="1"/>`;
   }
   return { inner: h, h: top + 42 + f.n * 40 + 14 };
@@ -518,17 +608,37 @@ function tableBody(f, P) {
 
 const bodyFor = (f, P) => (f.view === "bars" ? barsBody : f.view === "table" ? tableBody : radarBody)(f, P);
 
-// Vista previa (se inserta en la página).
-function svgDoc(f, P) {
-  const { inner, h } = bodyFor(f, P);
-  return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Ficha de estadísticas">${header(f, P)}${inner}</svg>`;
+// Nota opcional bajo el gráfico: máximo 2 líneas.
+function noteLines(note) {
+  const words = String(note || "").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  const lines = []; let cur = "";
+  for (const w of words) {
+    if ((cur + " " + w).trim().length <= 64) cur = (cur + " " + w).trim();
+    else { if (cur) lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > 2) { lines.length = 2; lines[1] = lines[1].slice(0, 63) + "…"; }
+  return lines.map(l => l.slice(0, 70));
 }
-// Archivo independiente (para descargar), a doble resolución y con fondo.
-function fichaToFile(f) {
-  const P = EXPORT_PAL, { inner, h } = bodyFor(f, P);
-  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}"><rect width="${W}" height="${h}" fill="${P.bg}"/>${header(f, P)}${inner}</svg>` };
+function withNote(f, P, r) {
+  const ls = noteLines(f.note);
+  if (!ls.length) return r;
+  let h = r.inner;
+  ls.forEach((t, i) => { h += `<text x="${W / 2}" y="${r.h + 8 + i * 20}" text-anchor="middle" ${FONT} font-size="13" font-style="italic" fill="${P.mute}">${esc(t)}</text>`; });
+  return { inner: h, h: r.h + ls.length * 20 + 20 };
 }
 
+// Vista previa (se inserta en la página).
+function svgDoc(f, P) {
+  const { inner, h } = withNote(f, P, bodyFor(f, P));
+  return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Ficha de estadísticas">${header(f, P)}${inner}</svg>`;
+}
+// Archivo independiente (para descargar), a doble resolución.
+function fichaToFile(f, opts) {
+  const { P, bg } = exportStyle(opts), { inner, h } = withNote(f, P, bodyFor(f, P));
+  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}">${bg ? `<rect width="${W}" height="${h}" fill="${bg}"/>` : ""}${header(f, P)}${inner}</svg>` };
+}
 
 /* ---------- comparación de dos personajes ---------- */
 function pickColors(A, B) {
@@ -553,64 +663,99 @@ function compareAxes(A, B) {
   add(A, "a"); add(B, "b");
   return list;
 }
-function compareBody(A, B, P) {
-  const [ca, cb] = pickColors(A, B), axes = compareAxes(A, B), N = axes.length;
-  const cx = 320, cy = 300, R = 120, fs = N > 10 ? 11 : 13;
-  const na = (A.name || "Sin nombre").toUpperCase(), nb = (B.name || "Sin nombre").toUpperCase();
-  const tfs = Math.min(28, 560 / ((na.length + nb.length + 4) * 0.66));
-  let h = `<text x="${cx}" y="56" text-anchor="middle" ${FONT} font-size="${tfs.toFixed(1)}" font-weight="900"><tspan fill="${ca}">${esc(na)}</tspan><tspan fill="${P.mute}" font-weight="400"> VS </tspan><tspan fill="${cb}">${esc(nb)}</tspan></text>`;
+const cmpVal = (f, i) => (i == null ? null : f.special[i] || f.stats[i]);     // número, "?" o "inf"
+const isSp = v => typeof v === "string";
+const cmpFrac = (f, v) => (v == null ? 0 : isSp(v) ? 1 : v / f.max);
+const cmpCell = (f, v) => (v == null ? "—" : isSp(v) ? SYM[v] : f.showRank ? `${v} · ${esc(labelOf(f, v))}` : String(v));
+function cmpDiff(A, B, va, vb, ca, cb, P) {
+  if (va == null || vb == null || isSp(va) || isSp(vb)) return null;
+  const same = A.max === B.max, d = same ? va - vb : Math.round((va / A.max - vb / B.max) * 100);
+  return { t: d === 0 ? "=" : (d > 0 ? "+" : "") + d + (same ? "" : "%"), c: d > 0 ? ca : d < 0 ? cb : P.mute };
+}
+const cmpWin = (A, B, va, vb) => (va != null && vb != null && !isSp(va) && !isSp(vb) && va / A.max !== vb / B.max ? (va / A.max > vb / B.max ? "a" : "b") : null);
+
+// Leyenda: el primero con línea continua, el segundo con línea punteada.
+function cmpLegend(A, B, ca, cb, P) {
+  const nm = t => esc((t || "").slice(0, 14)), y = 84;
+  const txt = (x, t) => `<text x="${x}" y="${y}" dominant-baseline="central" ${FONT} font-size="12" fill="${P.mute}">${nm(t)}</text>`;
+  return `<line x1="158" y1="${y}" x2="194" y2="${y}" stroke="${ca}" stroke-width="3" stroke-linecap="round"/>${txt(202, A.name)}`
+    + `<line x1="340" y1="${y}" x2="376" y2="${y}" stroke="${cb}" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5"/>${txt(384, B.name)}`;
+}
+
+function cmpRadar(A, B, axes, P, ca, cb) {
+  const N = axes.length, cx = 320, cy = 300, R = 120, fs = N > 10 ? 11 : 13;
   const ang = i => -Math.PI / 2 + i * 2 * Math.PI / N, pt = (i, r) => [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r];
+  let h = "";
   for (let k = 1; k <= 5; k++) h += `<polygon points="${points([...Array(N)].map((_, i) => pt(i, R * k / 5)))}" fill="none" stroke="${P.line}" stroke-width="1.2"/>`;
   for (let i = 0; i < N; i++) { const [x, y] = pt(i, R); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${P.line}" stroke-width="1.2"/>`; }
-  const val = (f, i) => (i == null ? null : f.stats[i]);
-  [[A, "a", ca], [B, "b", cb]].forEach(([f, key, col]) => {
-    const pts = axes.map((ax, i) => pt(i, R * (val(f, ax[key]) == null ? 0 : val(f, ax[key]) / f.max)));
-    h += `<polygon points="${points(pts)}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-width="3" stroke-linejoin="round"/>`;
-    pts.forEach(([x, y]) => { h += `<circle cx="${x}" cy="${y}" r="4" fill="${col}"/>`; });
+  [[A, "a", ca, false], [B, "b", cb, true]].forEach(([f, key, col, second]) => {
+    const pts = axes.map((ax, i) => pt(i, R * cmpFrac(f, cmpVal(f, ax[key]))));
+    h += `<polygon points="${points(pts)}" fill="${col}" fill-opacity=".28" stroke="${col}" stroke-width="3" stroke-linejoin="round"${second ? ' stroke-dasharray="9 6"' : ""}/>`;
+    pts.forEach(([x, y]) => { h += second ? `<rect x="${(x - 4).toFixed(1)}" y="${(y - 4).toFixed(1)}" width="8" height="8" fill="${col}"/>` : `<circle cx="${x}" cy="${y}" r="4" fill="${col}"/>`; });
   });
   axes.forEach((ax, i) => {
     const [x, y] = pt(i, R + 22), co = Math.cos(ang(i));
     h += `<text x="${x}" y="${y}" text-anchor="${co > 0.3 ? "start" : co < -0.3 ? "end" : "middle"}" dominant-baseline="central" ${FONT} font-size="${fs}" font-weight="700" fill="${P.ink}">${esc(ax.name)}</text>`;
   });
+  return h;
+}
 
-  // tabla VS
-  const y0 = cy + R + 72, xn = 44, xa = 340, xb = 474, xd = 596;
-  const short = t => esc(t.toUpperCase().slice(0, 11));
-  h += `<text x="${xn}" y="${y0}" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">ESTADÍSTICA</text>`;
-  h += `<text x="${xa}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${ca}">${short(A.name || "A")}</text>`;
-  h += `<text x="${xb}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${cb}">${short(B.name || "B")}</text>`;
-  h += `<text x="${xd}" y="${y0}" text-anchor="end" ${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${P.mute}">DIF</text>`;
+function cmpTable(A, B, axes, P, ca, cb, y0) {
+  const xn = 44, xa = 340, xb = 474, xd = 596, short = t => esc(t.toUpperCase().slice(0, 11));
+  const head = (x, t, col, an) => `<text x="${x}" y="${y0}" ${an ? `text-anchor="${an}" ` : ""}${FONT} font-size="11" font-weight="700" letter-spacing="1" fill="${col}">${t}</text>`;
+  let h = head(xn, "ESTADÍSTICA", P.mute) + head(xa, short(A.name || "A"), ca, "end") + head(xb, short(B.name || "B"), cb, "end") + head(xd, "DIF", P.mute, "end");
   h += `<line x1="${xn}" y1="${y0 + 14}" x2="${xd}" y2="${y0 + 14}" stroke="${P.ink}" stroke-width="2"/>`;
-  const same = A.max === B.max;
   axes.forEach((ax, i) => {
-    const y = y0 + 40 + i * 30, va = val(A, ax.a), vb = val(B, ax.b);
-    const pa = va == null ? null : va / A.max, pb = vb == null ? null : vb / B.max;
-    const cell = (f, v) => v == null ? "—" : f.showRank ? `${v} · ${esc(labelOf(f, v))}` : String(v);
-    const win = (pa != null && pb != null && pa !== pb) ? (pa > pb ? "a" : "b") : null;
+    const y = y0 + 40 + i * 30, va = cmpVal(A, ax.a), vb = cmpVal(B, ax.b), win = cmpWin(A, B, va, vb), d = cmpDiff(A, B, va, vb, ca, cb, P);
     h += `<text x="${xn}" y="${y}" dominant-baseline="central" ${FONT} font-size="14" font-weight="600" fill="${P.ink}">${esc(ax.name)}</text>`;
-    h += `<text x="${xa}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "a" ? 900 : 400}" fill="${win === "a" ? ca : P.ink}">${cell(A, va)}</text>`;
-    h += `<text x="${xb}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "b" ? 900 : 400}" fill="${win === "b" ? cb : P.ink}">${cell(B, vb)}</text>`;
-    if (va != null && vb != null) {
-      const d = same ? va - vb : Math.round((pa - pb) * 100);
-      const t = d === 0 ? "=" : (d > 0 ? "+" : "") + d + (same ? "" : "%");
-      h += `<text x="${xd}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="700" fill="${d > 0 ? ca : d < 0 ? cb : P.mute}">${t}</text>`;
-    }
+    h += `<text x="${xa}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "a" ? 900 : 400}" fill="${win === "a" ? ca : P.ink}">${cmpCell(A, va)}</text>`;
+    h += `<text x="${xb}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="${win === "b" ? 900 : 400}" fill="${win === "b" ? cb : P.ink}">${cmpCell(B, vb)}</text>`;
+    if (d) h += `<text x="${xd}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="700" fill="${d.c}">${d.t}</text>`;
     h += `<line x1="${xn}" y1="${y + 15}" x2="${xd}" y2="${y + 15}" stroke="${P.line}" stroke-width="1"/>`;
   });
-  let H = y0 + 40 + N * 30 + 6;
-  if (!same) {
-    h += `<text x="${cx}" y="${H + 14}" text-anchor="middle" ${FONT} font-size="11" fill="${P.mute}">Escalas distintas: cada personaje se dibuja respecto a su propio máximo (0–${A.max} y 0–${B.max}). DIF en puntos porcentuales.</text>`;
+  return { h, H: y0 + 40 + axes.length * 30 + 6 };
+}
+
+// Barras agrupadas: el segundo personaje va con rayado para distinguirlo sin depender del color.
+function cmpBars(A, B, axes, P, ca, cb) {
+  const top = 128, rowH = 66, x0 = 44, bx1 = 500, xv = 596;
+  let h = `<defs><pattern id="cmpHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="${cb}" fill-opacity=".22"/><line x1="0" y1="0" x2="0" y2="7" stroke="${cb}" stroke-width="3.5"/></pattern></defs>`;
+  axes.forEach((ax, i) => {
+    const y = top + i * rowH, va = cmpVal(A, ax.a), vb = cmpVal(B, ax.b), win = cmpWin(A, B, va, vb), d = cmpDiff(A, B, va, vb, ca, cb, P);
+    h += `<text x="${x0}" y="${y}" dominant-baseline="central" ${FONT} font-size="15" font-weight="700" fill="${P.ink}">${esc(ax.name)}</text>`;
+    if (d) h += `<text x="${xv}" y="${y}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="14" font-weight="700" fill="${d.c}">${d.t}</text>`;
+    [[A, va, ca, y + 20, win === "a", false], [B, vb, cb, y + 38, win === "b", true]].forEach(([f, v, col, by, w, hatch]) => {
+      h += `<rect x="${x0}" y="${by - 5}" width="${bx1 - x0}" height="10" rx="5" fill="${P.line}"/>`;
+      if (v === "?") h += `<rect x="${x0}" y="${by - 5}" width="${bx1 - x0}" height="10" rx="5" fill="none" stroke="${col}" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+      else if (cmpFrac(f, v) > 0) h += `<rect x="${x0}" y="${by - 5}" width="${((bx1 - x0) * cmpFrac(f, v)).toFixed(1)}" height="10" rx="5" fill="${hatch ? "url(#cmpHatch)" : col}"${hatch ? ` stroke="${col}" stroke-width="1.5"` : ""}/>`;
+      h += `<text x="${xv}" y="${by}" text-anchor="end" dominant-baseline="central" ${FONT} font-size="13" font-weight="${w ? 900 : 400}" fill="${w ? col : P.ink}">${cmpCell(f, v)}</text>`;
+    });
+  });
+  return { h, H: top + axes.length * rowH - 10 };
+}
+
+function compareBody(A, B, P, view = "radar") {
+  const [ca, cb] = pickColors(A, B), axes = compareAxes(A, B);
+  const na = (A.name || "Sin nombre").toUpperCase(), nb = (B.name || "Sin nombre").toUpperCase();
+  const tfs = Math.min(28, 560 / ((na.length + nb.length + 4) * 0.66));
+  let h = `<text x="320" y="56" text-anchor="middle" ${FONT} font-size="${tfs.toFixed(1)}" font-weight="900"><tspan fill="${ca}">${esc(na)}</tspan><tspan fill="${P.mute}" font-weight="400"> VS </tspan><tspan fill="${cb}">${esc(nb)}</tspan></text>`;
+  let H;
+  if (view === "bars") { const r = cmpBars(A, B, axes, P, ca, cb); h += cmpLegend(A, B, ca, cb, P) + r.h; H = r.H; }
+  else if (view === "table") { const r = cmpTable(A, B, axes, P, ca, cb, 112); h += r.h; H = r.H; }
+  else { const r = cmpTable(A, B, axes, P, ca, cb, 492); h += cmpLegend(A, B, ca, cb, P) + cmpRadar(A, B, axes, P, ca, cb) + r.h; H = r.H; }
+  if (A.max !== B.max) {
+    h += `<text x="320" y="${H + 14}" text-anchor="middle" ${FONT} font-size="11" fill="${P.mute}">Escalas distintas: cada personaje se dibuja respecto a su propio máximo (0–${A.max} y 0–${B.max}). DIF en puntos porcentuales.</text>`;
     H += 30;
   }
   return { inner: h, h: H + 10 };
 }
-function compareDoc(A, B, P) {
-  const { inner, h } = compareBody(A, B, P);
+function compareDoc(A, B, P, view) {
+  const { inner, h } = compareBody(A, B, P, view);
   return `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Comparación de personajes">${inner}</svg>`;
 }
-function compareFile(A, B) {
-  const P = EXPORT_PAL, { inner, h } = compareBody(A, B, P);
-  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}"><rect width="${W}" height="${h}" fill="${P.bg}"/>${inner}</svg>` };
+function compareFile(A, B, view, opts) {
+  const { P, bg } = exportStyle(opts), { inner, h } = compareBody(A, B, P, view);
+  return { w: W * 2, h: h * 2, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W * 2}" height="${h * 2}" viewBox="0 0 ${W} ${h}">${bg ? `<rect width="${W}" height="${h}" fill="${bg}"/>` : ""}${inner}</svg>` };
 }
 
 /* ---------- CSV ---------- */
@@ -621,7 +766,7 @@ function csvCell(v) {
 }
 function toCsv(f) {
   const rows = [["Estadística", "Valor", "Máximo", "Rango"]];
-  for (let i = 0; i < f.n; i++) rows.push([f.names[i], f.stats[i], f.max, labelOf(f, f.stats[i])]);
+  for (let i = 0; i < f.n; i++) rows.push([f.names[i], f.special[i] ? SYM[f.special[i]] : f.stats[i], f.max, statLabel(f, i)]);
   return "\ufeff" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
@@ -631,7 +776,7 @@ function toCsv(f) {
 const mem = {};
 const LS = {
   read(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return mem[k] ?? null; } },
-  write(k, v) { mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bloqueado o sin espacio */ } }
+  write(k, v) { mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 };
 const saveSystems = () => LS.write("stat-systems", userSystems);
 const saveFichas = () => LS.write("stat-fichas", fichas);
@@ -645,7 +790,20 @@ if (fichas.map(ensureSystem).some(Boolean)) saveSystems();
    ========================================================= */
 const $ = id => document.getElementById(id);
 let state = newFicha();
-let toastTimer;
+let base = clone(state);           // cómo estaba la ficha al abrirla, crearla o guardarla
+let toastTimer, draftTimer, draftOk = true;
+
+const DRAFT_KEY = "stat-draft";
+const sig = f => JSON.stringify({ ...f, updated: 0, systemSnap: null });
+const isDirty = () => sig(state) !== sig(base);
+function saveDraft() { draftOk = LS.write(DRAFT_KEY, { f: state, base }); }
+function updateDirty() {
+  const d = isDirty();
+  $("dirty").hidden = !d;
+  document.querySelector("[data-act=save]").classList.toggle("primary", d);
+}
+function touch() { updateDirty(); clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 300); }
+const okToDiscard = () => !isDirty() || confirm(`Tienes cambios sin guardar en «${state.name || "Sin nombre"}». ¿Descartarlos?`);
 
 function say(m) {
   const t = $("toast"); t.textContent = m; t.classList.add("show");
@@ -658,6 +816,7 @@ function livePal() {
 function draw() {
   $("card").innerHTML = svgDoc(state, livePal());
   $("viewInfo").textContent = `${VIEWS[state.view]} · ${state.n} stats · 0–${state.max}`;
+  touch();
 }
 const slug = s => (s || "ficha").toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-").replace(/^-|-$/g, "") || "ficha";
 
@@ -683,44 +842,59 @@ document.querySelectorAll("[data-nav]").forEach(b => { b.onclick = () => openPan
 function renderStats() {
   const box = $("statEditor"); box.innerHTML = "";
   for (let i = 0; i < state.n; i++) {
-    const row = document.createElement("div"); row.className = "stat-row";
-    row.innerHTML = `<input type="text" maxlength="14" value="${esc(state.names[i])}" aria-label="Nombre"><input type="number" min="0" max="${state.max}" value="${state.stats[i]}" aria-label="Valor"><button class="icon" title="Quitar" ${state.n <= 3 ? "disabled" : ""}>×</button><input type="range" class="slider" min="0" max="${state.max}" step="1" value="${state.stats[i]}" aria-label="Deslizador">`;
-    const [t, v, x, s] = row.children;
+    const sp = state.special[i], row = document.createElement("div"); row.className = "stat-row";
+    row.innerHTML = `<input type="text" maxlength="14" value="${esc(state.names[i])}" aria-label="Nombre"><input type="number" min="0" max="${state.max}" value="${state.stats[i]}" aria-label="Valor" ${sp ? "disabled" : ""}><button class="icon" title="Subir" aria-label="Subir" ${i === 0 ? "disabled" : ""}>▲</button><button class="icon" title="Bajar" aria-label="Bajar" ${i === state.n - 1 ? "disabled" : ""}>▼</button><button class="icon" title="Quitar" aria-label="Quitar" ${state.n <= 3 ? "disabled" : ""}>×</button><div class="stat-sub"><input type="range" class="slider" min="0" max="${state.max}" step="1" value="${state.stats[i]}" aria-label="Deslizador" ${sp ? "disabled" : ""}><select aria-label="Tipo de valor"><option value="">Número</option><option value="?">? Desconocido</option><option value="inf">∞ Infinito</option></select></div>`;
+    const [t, v, up, dn, x, sub] = row.children, s = sub.children[0], tp = sub.children[1];
+    tp.value = sp;
     t.oninput = () => { state.names[i] = t.value; draw(); };
+    up.onclick = () => moveStat(i, -1);
+    dn.onclick = () => moveStat(i, 1);
     v.oninput = () => { const n = clamp(Math.round(+v.value) || 0, 0, state.max); state.stats[i] = n; s.value = n; draw(); };
     v.onchange = () => { v.value = state.stats[i]; };
     s.oninput = () => { state.stats[i] = +s.value; v.value = s.value; draw(); };
+    tp.onchange = () => { state.special[i] = tp.value; v.disabled = s.disabled = !!tp.value; draw(); };
     x.onclick = () => removeStat(i);
     box.appendChild(row);
   }
   $("addStat").disabled = state.n >= 10;
 }
+function moveStat(i, d) {
+  const j = i + d; if (j < 0 || j >= state.n) return;
+  for (const k of ["names", "stats", "special"]) [state[k][i], state[k][j]] = [state[k][j], state[k][i]];
+  renderStats(); draw();
+}
 function removeStat(i) {
   if (state.n <= 3) return;
   state.names.splice(i, 1); state.names.push("Stat");
   state.stats.splice(i, 1); state.stats.push(Math.ceil(state.max / 2));
+  state.special.splice(i, 1); state.special.push("");
   state.n--; renderStats(); draw();
 }
 $("addStat").onclick = () => {
   if (state.n >= 10) return;
   state.names[state.n] = "Stat " + (state.n + 1);
   state.stats[state.n] = Math.ceil(state.max / 2);
+  state.special[state.n] = "";
   state.n++; renderStats(); draw();
 };
 
 /* --- interruptores y vista --- */
-const SWITCHES = { "sw-name": "showNames", "sw-value": "showValue", "sw-rank": "showRank", "sw-circle": "circle" };
+const SWITCHES = { "sw-name": "showNames", "sw-value": "showValue", "sw-rank": "showRank" };
 function syncSwitches() {
   for (const [id, k] of Object.entries(SWITCHES)) { $(id).classList.toggle("active", !!state[k]); $(id).setAttribute("aria-checked", !!state[k]); }
   document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
-  $("circleRow").hidden = state.view !== "radar";
+  document.querySelectorAll("[data-frame]").forEach(b => b.classList.toggle("active", b.dataset.frame === state.frame));
+  $("radarOpts").hidden = state.view !== "radar";
 }
 for (const [id, k] of Object.entries(SWITCHES)) $(id).onclick = () => { state[k] = !state[k]; syncSwitches(); draw(); };
 document.querySelectorAll("[data-view]").forEach(b => { b.onclick = () => { state.view = b.dataset.view; syncSwitches(); draw(); }; });
+document.querySelectorAll("[data-frame]").forEach(b => { b.onclick = () => { state.frame = b.dataset.frame; syncSwitches(); draw(); }; });
+$("fillOp").oninput = e => { state.fillOpacity = +e.target.value; $("fillOpVal").textContent = e.target.value; draw(); };
 
 /* --- identidad, escala y color --- */
 $("cname").oninput = e => { state.name = e.target.value; draw(); };
 $("subtitle").oninput = e => { state.subtitle = e.target.value; draw(); };
+$("note").oninput = e => { state.note = e.target.value; draw(); };
 $("color").oninput = e => { state.color = e.target.value; draw(); };
 $("max").onchange = e => {
   const M = clamp(Math.round(+e.target.value) || 10, 3, MAX_SCALE);
@@ -795,24 +969,26 @@ $("sysDel").onclick = () => {
   fichas.forEach(f => { if (f.system === s.id) { f.system = "b-letters"; f.systemSnap = null; } });
   saveFichas();
   if (state.system === s.id) { state.system = "b-letters"; state.systemSnap = null; }
+  if (base.system === s.id) { base.system = "b-letters"; base.systemSnap = null; }
   renderSystem(); renderLibrary(); draw(); say("Sistema borrado.");
 };
 
 /* --- biblioteca --- */
 function renderLibrary() {
   const box = $("libraryList");
-  if (!fichas.length) { box.innerHTML = '<div class="empty">Aún no tienes fichas guardadas. Edita una y pulsa «Guardar».</div>'; return; }
+  if (!fichas.length) { box.innerHTML = '<div class="empty">Aún no tienes fichas guardadas. Edita una y pulsa «Guardar».</div>'; renderBackup(); return; }
   box.innerHTML = "";
   fichas.forEach(f => {
     const d = document.createElement("div"); d.className = "library-card" + (f.id === state.id ? " current" : "");
     d.innerHTML = `<strong><span class="swatch" style="background:${esc(f.color)}"></span>${esc(f.name || "Sin nombre")}</strong><small>${f.n} estadísticas · ${VIEWS[f.view]}${f.subtitle ? " · " + esc(f.subtitle) : ""}</small><div class="library-actions"><button class="btn sm">Abrir</button><button class="btn sm">Duplicar</button><button class="btn sm">Exportar</button><button class="btn sm danger">Borrar</button></div>`;
     const [open, dup, exp, del] = d.querySelectorAll("button");
-    open.onclick = () => { state = migrate(f); syncAll(); openPanel("config"); say("Ficha abierta."); };
+    open.onclick = () => { if (!okToDiscard()) return; state = migrate(f); base = clone(state); syncAll(); openPanel("config"); say("Ficha abierta."); };
     dup.onclick = () => duplicate(f);
     exp.onclick = () => exportList([f], slug(f.name) + ".json");
     del.onclick = () => deleteFicha(f.id);
     box.appendChild(d);
   });
+  renderBackup();
 }
 function duplicate(f) {
   const c = finalize(migrate(f));
@@ -822,7 +998,7 @@ function duplicate(f) {
 function deleteFicha(id) {
   if (!confirm("¿Borrar esta ficha?")) return;
   fichas = fichas.filter(x => x.id !== id); saveFichas();
-  if (state.id === id) { state = newFicha(); syncAll(); } else renderLibrary();
+  if (state.id === id) { state = newFicha(); base = clone(state); syncAll(); } else renderLibrary();
   say("Ficha borrada.");
 }
 
@@ -832,62 +1008,123 @@ function exportList(list, filename) {
   saveFile(filename, new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
   say(list.length === 1 ? "Ficha exportada." : `${list.length} fichas exportadas.`);
 }
-$("exportAll").onclick = () => fichas.length ? exportList(fichas, "stat-generator-fichas.json") : say("No hay fichas guardadas para exportar.");
+function renderBackup() {
+  const box = $("backup");
+  if (!fichas.length) { box.className = ""; box.innerHTML = ""; return; }
+  const last = Number(LS.read("stat-lastexport")) || 0;
+  const pending = last ? fichas.filter(f => (f.updated || 0) > last).length : fichas.length;
+  const when = last ? new Date(last).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" }) : "nunca";
+  const nudge = pending > 0 && (!last || Date.now() - last > 14 * 864e5);
+  box.className = nudge ? "hint" : "muted";
+  box.innerHTML = `<span>Último respaldo: ${when}${pending ? ` · ${pending} ficha${pending > 1 ? "s" : ""} sin respaldar` : ""}</span>` + (nudge ? '<button class="btn sm" id="bkNow">Respaldar</button>' : "");
+  if (nudge) $("bkNow").onclick = () => $("exportAll").click();
+}
+$("exportAll").onclick = () => {
+  if (!fichas.length) { say("No hay fichas guardadas para exportar."); return; }
+  exportList(fichas, "stat-generator-fichas.json");
+  LS.write("stat-lastexport", Date.now()); renderBackup();
+};
 $("exportCur").onclick = () => exportList([state], slug(state.name) + ".json");
 $("importBtn").onclick = () => $("importFile").click();
 $("importFile").onchange = e => { const file = e.target.files[0]; e.target.value = ""; if (file) importFile(file); };
 
-function importFile(file) {
-  if (file.size > 2e6) { say("El archivo es demasiado grande (máximo 2 MB)."); return; }
-  const reader = new FileReader();
-  reader.onerror = () => say("No se pudo leer el archivo.");
-  reader.onload = () => {
-    let data;
-    try { data = JSON.parse(reader.result); } catch (err) { say("El archivo no es un JSON válido."); return; }
-    const list = (Array.isArray(data) ? data : data && Array.isArray(data.fichas) ? data.fichas : data && typeof data === "object" ? [data] : [])
-      .slice(0, 200).filter(x => x && typeof x === "object");
-    if (!list.length) { say("El archivo no contiene fichas."); return; }
-    const items = list.map(migrate), taken = new Set(fichas.map(x => x.id));
-    const dups = items.filter(x => x.id && taken.has(x.id)).length;
-    const msg = `Se importarán ${items.length} ficha${items.length > 1 ? "s" : ""}` + (dups ? `; ${dups} ya existía${dups > 1 ? "n" : ""} y se guardará${dups > 1 ? "n" : ""} como copia` : "") + ". ¿Continuar?";
-    if (!confirm(msg)) return;
-    let newSys = false;
-    items.forEach(it => {
-      if (!it.id || taken.has(it.id)) { if (it.id) it.name = it.name.slice(0, 28) + " (copia)"; it.id = rid("f"); }
-      taken.add(it.id); it.updated = Date.now();
-      newSys = ensureSystem(it) || newSys;
-    });
-    fichas = [...items, ...fichas]; saveFichas(); if (newSys) saveSystems();
-    renderLibrary(); renderSystem(); say(`${items.length} ficha${items.length > 1 ? "s importadas" : " importada"}.`);
-  };
-  reader.readAsText(file);
+function importText(raw) {
+  let data;
+  try { data = JSON.parse(raw); } catch (err) { say("Eso no es un JSON válido."); return false; }
+  const list = (Array.isArray(data) ? data : data && Array.isArray(data.fichas) ? data.fichas : data && typeof data === "object" ? [data] : [])
+    .slice(0, 200).filter(x => x && typeof x === "object");
+  if (!list.length) { say("El JSON no contiene fichas."); return false; }
+  const items = list.map(migrate), taken = new Set(fichas.map(x => x.id));
+  const dups = items.filter(x => x.id && taken.has(x.id)).length;
+  const msg = `Se importarán ${items.length} ficha${items.length > 1 ? "s" : ""}` + (dups ? `; ${dups} ya existía${dups > 1 ? "n" : ""} y se guardará${dups > 1 ? "n" : ""} como copia` : "") + ". ¿Continuar?";
+  if (!confirm(msg)) return false;
+  let newSys = false;
+  items.forEach(it => {
+    if (!it.id || taken.has(it.id)) { if (it.id) it.name = it.name.slice(0, 28) + " (copia)"; it.id = rid("f"); }
+    taken.add(it.id); it.updated = Date.now();
+    newSys = ensureSystem(it) || newSys;
+  });
+  fichas = [...items, ...fichas]; saveFichas(); if (newSys) saveSystems();
+  renderLibrary(); renderSystem(); say(`${items.length} ficha${items.length > 1 ? "s importadas" : " importada"}.`);
+  return true;
 }
+function importFile(file) {
+  if (file.size > 2e6) { say("El archivo es demasiado grande (máximo 2 MB)."); return Promise.resolve(); }
+  return new Promise(done => {
+    const reader = new FileReader();
+    reader.onerror = () => { say("No se pudo leer el archivo."); done(); };
+    reader.onload = () => { importText(reader.result); done(); };
+    reader.readAsText(file);
+  });
+}
+// Pegar JSON
+$("pasteBtn").onclick = () => { $("pasteBox").hidden = !$("pasteBox").hidden; if (!$("pasteBox").hidden) $("pasteText").focus(); };
+$("pasteCancel").onclick = () => { $("pasteText").value = ""; $("pasteBox").hidden = true; };
+$("pasteLoad").onclick = () => {
+  const t = $("pasteText").value.trim();
+  if (!t) { say("Pega primero el contenido del JSON."); return; }
+  if (t.length > 2e6) { say("El texto es demasiado grande (máximo 2 MB)."); return; }
+  if (importText(t)) { $("pasteText").value = ""; $("pasteBox").hidden = true; }
+};
+// Arrastrar y soltar un .json en cualquier parte de la página
+const hasFiles = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes("Files");
+window.addEventListener("dragover", e => { if (hasFiles(e)) { e.preventDefault(); $("dropzone").classList.add("over"); } });
+window.addEventListener("dragleave", e => { if (!e.relatedTarget) $("dropzone").classList.remove("over"); });
+window.addEventListener("drop", async e => {
+  if (!hasFiles(e)) return;
+  e.preventDefault(); $("dropzone").classList.remove("over");
+  const files = [...e.dataTransfer.files].filter(f => /\.json$/i.test(f.name) || f.type === "application/json").slice(0, 5);
+  if (!files.length) { say("Solo se pueden cargar archivos .json."); return; }
+  openPanel("library");
+  for (const f of files) await importFile(f);
+});
 
-/* --- exportar imagen (PNG / SVG) y CSV --- */
+/* --- exportar imagen (PNG / SVG / copiar) y CSV --- */
 const onCompare = () => !$("compareScreen").hidden;
+let expOpts = { bg: "light", text: "dark", ...(LS.read("stat-export") || {}) };
+if (!["light", "dark", "transparent"].includes(expOpts.bg)) expOpts.bg = "light";
+if (!["dark", "light"].includes(expOpts.text)) expOpts.text = "dark";
+function syncExp() {
+  document.querySelectorAll("[data-exp]").forEach(sel => { sel.value = expOpts[sel.dataset.exp]; });
+  document.querySelectorAll("[data-exp-row=text]").forEach(r => { r.hidden = expOpts.bg !== "transparent"; });
+}
+document.querySelectorAll("[data-exp]").forEach(sel => {
+  sel.onchange = () => { expOpts[sel.dataset.exp] = sel.value; LS.write("stat-export", expOpts); syncExp(); };
+});
+syncExp();
+
 function currentFile() {
   if (onCompare()) {
     const A = resolve(cmp.a), B = resolve(cmp.b);
     if (!A || !B) { say("Elige dos personajes para comparar."); return null; }
-    return { file: compareFile(A, B), name: slug(A.name) + "-vs-" + slug(B.name) };
+    return { file: compareFile(A, B, cmp.view, expOpts), name: slug(A.name) + "-vs-" + slug(B.name) };
   }
-  return { file: fichaToFile(state), name: slug(state.name) };
+  return { file: fichaToFile(state, expOpts), name: slug(state.name) };
+}
+async function makePngBlob(file) {
+  const img = new Image();
+  await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(file.svg); });
+  const cv = document.createElement("canvas"); cv.width = file.w; cv.height = file.h;
+  cv.getContext("2d").drawImage(img, 0, 0);
+  const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+  if (!blob) throw new Error("png");
+  return blob;
 }
 async function exportPng() {
   const cur = currentFile(); if (!cur) return;
-  const { svg, w, h } = cur.file;
-  try {
-    const img = new Image();
-    await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
-    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
-    cv.getContext("2d").drawImage(img, 0, 0);
-    const blob = await new Promise(r => cv.toBlob(r, "image/png"));
-    if (!blob) throw new Error("png");
-    saveFile(cur.name + ".png", blob); say("Imagen PNG descargada.");
-  } catch (e) {
-    saveFile(cur.name + ".svg", new Blob([svg], { type: "image/svg+xml" }));
+  try { saveFile(cur.name + ".png", await makePngBlob(cur.file)); say("Imagen PNG descargada."); }
+  catch (e) {
+    saveFile(cur.name + ".svg", new Blob([cur.file.svg], { type: "image/svg+xml" }));
     say("No se pudo generar el PNG; se descargó SVG.");
   }
+}
+async function exportCopy() {
+  const cur = currentFile(); if (!cur) return;
+  if (!(navigator.clipboard && window.ClipboardItem)) { say("Tu navegador no permite copiar imágenes; se descargó el PNG."); await exportPng(); return; }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": makePngBlob(cur.file) })]);
+    say("Imagen copiada. Ya puedes pegarla en un chat o documento.");
+  } catch (e) { say("No se pudo copiar; se descargó el PNG."); await exportPng(); }
 }
 function exportSvg() {
   const cur = currentFile(); if (!cur) return;
@@ -899,7 +1136,7 @@ function exportCsv() {
 $("expSvg").onclick = exportSvg; $("cmpSvg").onclick = exportSvg; $("expCsv").onclick = exportCsv;
 
 /* --- comparar --- */
-const cmp = { a: null, b: null };
+const cmp = { a: null, b: null, view: "radar" };
 const resolve = id => (id === "__current" ? state : fichas.find(f => f.id === id) || null);
 function renderCompare() {
   const cands = [...fichas.map(f => ({ id: f.id, label: f.name || "Sin nombre" })), { id: "__current", label: "Ficha actual (editor)" }];
@@ -913,41 +1150,63 @@ function renderCompare() {
   drawCompare();
 }
 function drawCompare() {
+  document.querySelectorAll("[data-cview]").forEach(b => b.classList.toggle("active", b.dataset.cview === cmp.view));
   const A = resolve(cmp.a), B = resolve(cmp.b), note = $("cmpNote");
   if (!A || !B || cmp.a === cmp.b) {
     $("cmpCard").innerHTML = '<div class="empty">Necesitas dos personajes distintos para comparar. Guarda fichas en la Biblioteca o usa la ficha actual del editor.</div>';
     note.textContent = ""; return;
   }
-  $("cmpCard").innerHTML = compareDoc(A, B, livePal());
+  $("cmpCard").innerHTML = compareDoc(A, B, livePal(), cmp.view);
   note.textContent = "Los personajes se alinean por el nombre de sus estadísticas. Si una existe solo en uno, el otro cuenta como 0.";
 }
 $("cmpA").onchange = e => { cmp.a = e.target.value; drawCompare(); };
 $("cmpB").onchange = e => { cmp.b = e.target.value; drawCompare(); };
+document.querySelectorAll("[data-cview]").forEach(b => { b.onclick = () => { cmp.view = b.dataset.cview; drawCompare(); }; });
 $("cmpSwap").onclick = () => { [cmp.a, cmp.b] = [cmp.b, cmp.a]; renderCompare(); };
 
 /* --- acciones generales --- */
 const ACTS = {
   rand() { state.stats = state.stats.map(() => Math.floor(Math.random() * (state.max + 1))); renderStats(); draw(); },
-  reset() { state.stats = state.stats.map(() => Math.ceil(state.max / 2)); renderStats(); draw(); },
-  new() { state = newFicha(); syncAll(); openPanel("config"); say("Ficha nueva."); },
+  reset() {
+    if (!isDirty()) { say("La ficha ya está como cuando la abriste."); return; }
+    if (!confirm("¿Volver la ficha a como estaba al abrirla o guardarla? Se perderán los cambios actuales.")) return;
+    state = clone(base); syncAll(); say("Ficha restaurada.");
+  },
+  new() { if (!okToDiscard()) return; state = newFicha(); base = clone(state); syncAll(); openPanel("config"); say("Ficha nueva."); },
   save() {
     state.id = state.id || rid("f"); state.updated = Date.now();
     const data = finalize(clone(state));
     fichas = [data, ...fichas.filter(x => x.id !== state.id)];
-    saveFichas(); renderLibrary(); say("Ficha guardada.");
+    saveFichas(); base = clone(state); renderLibrary(); updateDirty(); saveDraft(); say("Ficha guardada.");
   },
-  dl: exportPng
+  dl: exportPng,
+  copy: exportCopy
 };
 document.querySelectorAll("[data-act]").forEach(b => { b.onclick = ACTS[b.dataset.act]; });
 
 /* --- inicio --- */
 function syncAll() {
   ensureSystem(state);
-  $("cname").value = state.name; $("subtitle").value = state.subtitle;
+  $("cname").value = state.name; $("subtitle").value = state.subtitle; $("note").value = state.note;
+  $("fillOp").value = state.fillOpacity; $("fillOpVal").textContent = state.fillOpacity;
   $("max").value = state.max; $("color").value = state.color;
   syncSwitches(); renderStats(); renderSystem(); renderLibrary(); draw();
 }
+
+// Restaurar el borrador de la sesión anterior, si quedó algo sin guardar.
+let restored = false;
+{
+  const dr = LS.read(DRAFT_KEY);
+  if (dr && dr.f) {
+    state = migrate(dr.f); base = migrate(dr.base || dr.f);
+    if (state.id && !fichas.some(x => x.id === state.id)) { state.id = null; base = newFicha(); }
+    restored = isDirty();
+  }
+}
+window.addEventListener("beforeunload", e => { saveDraft(); if (isDirty() && !draftOk) { e.preventDefault(); e.returnValue = ""; } });
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveDraft(); });
 syncAll();
+if (restored) say("Se restauró tu borrador sin guardar.");
 
 </script>
 </body>
